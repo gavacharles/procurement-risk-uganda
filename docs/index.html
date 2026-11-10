@@ -170,6 +170,7 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
         <li><b>Colours</b> split districts into five equal-sized groups (quintiles) for the chosen measure, year and sector. Darker means more of the measure, and for the risk measures, more concerning.</li>
         <li><b>Comparison</b>: the panel compares each district with the national median, taken across districts with at least 10 contracts.</li>
         <li><b>Locating central-government works</b>: when a title names several districts, its value is split equally between them. Some multi-district road lots are placed at the station named in the title. About 2,150 contracts (around 30% of value) name no place, such as headquarters works, and are not mapped.</li>
+        <li><b>Days until award is public</b> counts from bid closing to the date the award was recorded on the portal, so it mostly reflects reporting delay rather than how long the procurement took.</li>
         <li><b>Single bid</b> comes from bid records, some of which hold only the winning bid, so treat it as an upper bound.</li>
         <li><b>Risk measures are indicators that call for review</b>, not findings of wrongdoing. No firm is named.</li>
       </ul>
@@ -221,16 +222,20 @@ Firm Gamma Ltd</textarea>
 
 <section id="time">
   <div class="wrap">
-    <h2>Could this shorten procurement in Uganda?</h2>
+    <h2>Could this shorten procurement, and make it more transparent?</h2>
     <div class="finding">
       <div>
-        <div class="num">73%</div>
-        <h3>of procurement time comes after bids close</h3>
-        <p>The median works procurement takes 206 days from advert to award. Only 43 of those are the bidding window; 138 come between bid closing and award. Procurements with no red flags (54% of records) wait as long as risky ones.</p>
+        <div class="num">4 months</div>
+        <h3>before a works award appears on the public portal</h3>
+        <p>Using PPDA's own process dates, a typical works procurement takes about <strong>6 weeks</strong> from invitation to award (median 43 days; 31 of them after bids close). But the award only appears on the public portal a median of <strong>118 days after it is made</strong>, and <strong>81% of works tenders are entered on the portal only after the contract has been awarded</strong>. The public record arrives too late for anyone to act on it while it matters.</p>
       </div>
-      <img src="img/fig2_postclose_by_tier.png" alt="Distributions of days from bid closing to award by risk tier, largely overlapping">
+      <div class="card">
+        <h3>What would help</h3>
+        <p><b>Real-time publication.</b> If each stage were published as it happens (invitation, bid opening, evaluation, award), red flags could be raised <em>before</em> contracts are signed, not months later.</p>
+        <p style="margin-top:10px"><b>Risk-based processing.</b> Low-risk procurements (no red flags) already move about as fast as medium-risk ones (32 vs 27 days after bids close); high-risk ones take longer (about 46 days). A fast lane with automated document checks for the clean majority, and closer scrutiny for the high-risk few, would focus effort where it matters.</p>
+      </div>
     </div>
-    <p>A three-lane model would give low-risk procurements a <strong>fast lane</strong> (automated document checks, fixed approval times) and concentrate scrutiny on the 7% that are high-risk. If low-risk procurements finished post-closing steps at the pace their fastest quarter already achieves, the median cycle would fall from <strong>206 to about 144 days</strong>. This is an illustrative scenario, not a causal estimate.</p>
+    <p class="note"><b>Correction (10 Nov 2026).</b> An earlier version of this page said a works procurement takes a median of 206 days. That figure used the date an award was <em>recorded on the portal</em>, not the date it was <em>made</em>. Checked against PPDA's own process dates (a random sample of about 5,000 tender records), the procurement itself takes about 6 weeks; the remaining months are reporting delay. The figures above are corrected.</p>
   </div>
 </section>
 
@@ -286,7 +291,7 @@ const METRICS = {
   ],
   process: [
     {k:'just_below_share', label:'Awards just below estimate', f:PCT, d:'Share of awards at 99–100% of the official estimate. Nationally this is far more common than competitive bidding would produce.'},
-    {k:'median_post_close_days', label:'Days: bids close → award', f:v=>Math.round(v)+' days', d:'Median days between bid closing and award: evaluation, approvals and notices.'},
+    {k:'median_post_close_days', label:'Days until award is public', f:v=>Math.round(v)+' days', d:'Median days from bid closing until the award appears on the public portal. This mostly measures reporting delay: the procurement itself takes about 6 weeks nationally (PPDA process dates), but awards are typically published months later.'},
     {k:'mean_risk', label:'Mean risk score', f:v=>v.toFixed(1), d:'Average of the explainable red-flag score (0–100) across the district\'s works contracts.'},
   ],
 };
@@ -341,7 +346,7 @@ function show(p){
     ['Total value', UGX(c.value)], ['Value per person', c.value_per_capita!=null?UGX(c.value_per_capita):'n/a'],
     ['Not openly bid', c.non_open_share!=null?PCT(c.non_open_share):'n/a'], ['Top supplier\'s share', c.top_supplier_share!=null?PCT(c.top_supplier_share):'n/a'],
     ['Distinct suppliers', c.n_suppliers], ['Awards just below estimate', c.just_below_share!=null?PCT(c.just_below_share):'n/a'],
-    ['Days: bids close → award', c.median_post_close_days!=null?Math.round(c.median_post_close_days):'n/a'],
+    ['Days until award is public', c.median_post_close_days!=null?Math.round(c.median_post_close_days):'n/a'],
     ['Mean risk score', c.mean_risk], ['Procured by local councils', c.council_value_share!=null?PCT(c.council_value_share)+' of value':'n/a']];
   const bodies=(MD.bodies[p.district]||[]).map(x=>`<li>${x.name} <span class="muted small">(${x.kind==='council'?'council':'central, located by title'})</span></li>`).join('');
   b.innerHTML = cmp + `<div class="muted small" style="margin-top:8px">Trend: ${M.label}${SUB!=='all'?' · '+SUB.replace('_',' '):''}</div>` + spark(p.district)
