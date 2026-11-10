@@ -60,6 +60,12 @@ code{background:var(--code);padding:1px 6px;border-radius:4px;font-size:13px}
 .legend{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-top:10px}
 .legend .bar{height:10px;flex:1;border-radius:5px;background:linear-gradient(90deg,#fef0d9,#fdcc8a,#fc8d59,#e34a33,#b30000)}
 .leaflet-container{font:inherit}
+.vgrid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:16px}
+@media(min-width:820px){.vgrid{grid-template-columns:1fr 1fr}}
+.vgrid figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px}
+.vgrid video,.vgrid img{width:100%;border-radius:6px;display:block;background:#fcfcfb}
+.vgrid figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+
 .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 10px;border-bottom:1px solid var(--line)}
 .tabs button{font:inherit;font-size:15px;font-weight:600;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:8px 10px;cursor:pointer}
 .tabs button.on{color:var(--fg);border-bottom-color:var(--accent)}
@@ -94,7 +100,7 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
 </head>
 <body>
 <nav><div class="wrap">
-  <a href="#findings">Findings</a><a href="#map-section">Interactive map</a><a href="#maths">Maths &amp; ML</a>
+  <a href="#findings">Findings</a><a href="#visuals">Visuals</a><a href="#map-section">Interactive map</a><a href="#maths">Maths &amp; ML</a>
   <a href="#blind">Blind evaluation demo</a><a href="#time">Faster procurement</a><a href="#product">Product</a><a href="#about">About</a>
 </div></nav>
 
@@ -133,10 +139,31 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
   </div>
 </section>
 
+<section id="visuals">
+  <div class="wrap">
+    <h2>Visual stories</h2>
+    <p>Three findings, animated. Each comes from a different branch of mathematics.</p>
+    <div class="vgrid">
+      <figure><video src="media/anim_bunching.mp4" autoplay loop muted playsinline></video>
+        <figcaption><b>Statistics &amp; calculus.</b> Winning prices pile up just below the official estimate: 1,976 contracts where about 316 are expected.</figcaption></figure>
+      <figure><video src="media/anim_network.mp4" autoplay loop muted playsinline></video>
+        <figcaption><b>Graph theory.</b> The construction bidding network grows year by year; orange firms belong to groups that rotate wins. Firms are not named.</figcaption></figure>
+      <figure><video src="media/anim_timeline.mp4" autoplay loop muted playsinline></video>
+        <figcaption><b>Data forensics.</b> Procurement takes about 46 days; the award then waits a median of 101 days before it appears on the public portal.</figcaption></figure>
+      <figure><img src="media/chart_ml.png" alt="Bar chart of what makes contracts unusual according to the Isolation Forest">
+        <figcaption><b>Machine learning.</b> What the Isolation Forest finds unusual: mainly suppliers that dominate an entity's works and long-standing supplier–entity ties.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
 <section id="map-section">
   <div class="wrap">
     <h2>Interactive map: where public works money goes, and how it is spent</h2>
     <p>The map places <strong>4,096 public works contracts</strong> (about 70% of all works value) in Uganda's 135 districts. Contracts procured by district, municipal and city councils sit in their own district. Contracts procured by central bodies (UNRA, ministries, NWSC and others) are placed using the place names in their titles. Pick a question, a measure, a year and a sector, then click a district.</p>
+    <details class="howto" style="margin:4px 0 14px" open>
+      <summary>▶ Watch: how to use the map (40 seconds)</summary>
+      <video src="media/map_tutorial.mp4" controls muted playsinline preload="metadata" style="width:100%;margin-top:10px;border-radius:8px;border:1px solid var(--line)"></video>
+    </details>
     <div class="tabs" role="tablist" id="qtabs">
       <button role="tab" data-q="money" class="on">① Where does the money go?</button>
       <button role="tab" data-q="competition">② Is there real competition?</button>
@@ -225,17 +252,17 @@ Firm Gamma Ltd</textarea>
     <h2>Could this shorten procurement, and make it more transparent?</h2>
     <div class="finding">
       <div>
-        <div class="num">4 months</div>
+        <div class="num">3 months</div>
         <h3>before a works award appears on the public portal</h3>
-        <p>Using PPDA's own process dates, a typical works procurement takes about <strong>6 weeks</strong> from invitation to award (median 43 days; 31 of them after bids close). But the award only appears on the public portal a median of <strong>118 days after it is made</strong>, and <strong>81% of works tenders are entered on the portal only after the contract has been awarded</strong>. The public record arrives too late for anyone to act on it while it matters.</p>
+        <p>Using PPDA's own process dates, a typical works procurement takes about <strong>6–7 weeks</strong> from invitation to award (median 46 days; 28 of them after bids close). But the award only appears on the public portal a median of <strong>101 days after it is made</strong>, and <strong>82% of works tenders are entered on the portal only after the contract has been awarded</strong>. The public record arrives too late for anyone to act on it while it matters.</p>
       </div>
       <div class="card">
         <h3>What would help</h3>
         <p><b>Real-time publication.</b> If each stage were published as it happens (invitation, bid opening, evaluation, award), red flags could be raised <em>before</em> contracts are signed, not months later.</p>
-        <p style="margin-top:10px"><b>Risk-based processing.</b> Low-risk procurements (no red flags) already move about as fast as medium-risk ones (32 vs 27 days after bids close); high-risk ones take longer (about 46 days). A fast lane with automated document checks for the clean majority, and closer scrutiny for the high-risk few, would focus effort where it matters.</p>
+        <p style="margin-top:10px"><b>Risk-based processing.</b> Low-risk procurements (no red flags) already move about as fast as medium-risk ones (31 vs 25 days after bids close); high-risk ones take longer (about 52 days). A fast lane with automated document checks for the clean majority, and closer scrutiny for the high-risk few, would focus effort where it matters.</p>
       </div>
     </div>
-    <p class="note"><b>Correction (10 Nov 2026).</b> An earlier version of this page said a works procurement takes a median of 206 days. That figure used the date an award was <em>recorded on the portal</em>, not the date it was <em>made</em>. Checked against PPDA's own process dates (a random sample of about 5,000 tender records), the procurement itself takes about 6 weeks; the remaining months are reporting delay. The figures above are corrected.</p>
+    <p class="note"><b>Correction (10 Nov 2026).</b> An earlier version of this page said a works procurement takes a median of 206 days. That figure used the date an award was <em>recorded on the portal</em>, not the date it was <em>made</em>. Checked against PPDA's own process dates (a random sample of about 5,000 tender records), the procurement itself takes about 6–7 weeks; the remaining months are reporting delay. The figures above are corrected.</p>
   </div>
 </section>
 
@@ -291,7 +318,7 @@ const METRICS = {
   ],
   process: [
     {k:'just_below_share', label:'Awards just below estimate', f:PCT, d:'Share of awards at 99–100% of the official estimate. Nationally this is far more common than competitive bidding would produce.'},
-    {k:'median_post_close_days', label:'Days until award is public', f:v=>Math.round(v)+' days', d:'Median days from bid closing until the award appears on the public portal. This mostly measures reporting delay: the procurement itself takes about 6 weeks nationally (PPDA process dates), but awards are typically published months later.'},
+    {k:'median_post_close_days', label:'Days until award is public', f:v=>Math.round(v)+' days', d:'Median days from bid closing until the award appears on the public portal. This mostly measures reporting delay: the procurement itself takes about 6–7 weeks nationally (PPDA process dates), but awards are typically published months later.'},
     {k:'mean_risk', label:'Mean risk score', f:v=>v.toFixed(1), d:'Average of the explainable red-flag score (0–100) across the district\'s works contracts.'},
   ],
 };

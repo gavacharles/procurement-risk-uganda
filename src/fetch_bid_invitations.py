@@ -96,7 +96,10 @@ def sample(n_pages: int, seed: int = 7) -> None:
     done_f = RAW / "bid_invitations_sample.pages"
     done = set(map(int, done_f.read_text().split())) if done_f.exists() else set()
     last = get(f"{API}?page=1")["data"]["last_page"]
-    pages = random.Random(seed).sample(range(1, last + 1), n_pages)
+    # top up: draw only pages not yet fetched, until n_pages distinct pages are done
+    remaining = [p for p in range(1, last + 1) if p not in done]
+    need = max(0, n_pages - len(done))
+    pages = random.Random(seed + len(done)).sample(remaining, need)
     with out.open("a") as fh, done_f.open("a") as df:
         for i, page in enumerate(pages, 1):
             if page in done:
