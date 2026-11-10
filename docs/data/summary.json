@@ -1,9 +1,33 @@
 {
- "mapped_records": 3325,
- "mapped_value_ugx": 1105948607090.0,
- "districts_with_data": 67,
+ "records_total": 6245,
+ "by_location_source": [
+  {
+   "loc_source": "council",
+   "records": 3288,
+   "value": 1105948607090.0
+  },
+  {
+   "loc_source": "title",
+   "records": 808,
+   "value": 8275791067258.0
+  },
+  {
+   "loc_source": "unlocated",
+   "records": 2149,
+   "value": 3938988339575.0
+  }
+ ],
+ "districts_with_data": 119,
  "districts_total": 135,
- "central_records": 3006,
- "central_value_ugx": 12214779406833.0,
- "unmatched_lg_buyers": []
+ "years": [
+  "2018/19",
+  "2019/20",
+  "2020/21",
+  "2021/22",
+  "2022/23",
+  "2023/24",
+  "2024/25",
+  "2025/26",
+  "2026/27"
+ ]
 }

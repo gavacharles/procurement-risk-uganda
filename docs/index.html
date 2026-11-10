@@ -60,6 +60,28 @@ code{background:var(--code);padding:1px 6px;border-radius:4px;font-size:13px}
 .legend{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-top:10px}
 .legend .bar{height:10px;flex:1;border-radius:5px;background:linear-gradient(90deg,#fef0d9,#fdcc8a,#fc8d59,#e34a33,#b30000)}
 .leaflet-container{font:inherit}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 10px;border-bottom:1px solid var(--line)}
+.tabs button{font:inherit;font-size:15px;font-weight:600;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:8px 10px;cursor:pointer}
+.tabs button.on{color:var(--fg);border-bottom-color:var(--accent)}
+.ctrl2{display:flex;flex-wrap:wrap;gap:14px;align-items:center;font-size:14px;color:var(--muted);margin:4px 0 6px}
+.ctrl2 select{font:inherit;font-size:14px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;margin-left:4px}
+.chk input{vertical-align:middle;margin-right:4px}
+.mdesc{font-size:14.5px;color:var(--muted);margin:6px 0 12px;min-height:22px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--muted);margin-top:10px}
+.legend .lg i{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.legend-note{font-size:12.5px;color:var(--muted);margin-top:6px}
+.sw{display:inline-block;width:14px;height:10px;border-radius:2px;vertical-align:middle;margin-right:4px}
+.sw-small{background:#fc8d59;opacity:.45;outline:1px dashed #555}.sw-none{background:#cfcfcf}
+.pmeta{font-size:13.5px;color:var(--muted);margin-bottom:10px}
+.cmp{background:var(--chip);border-radius:8px;padding:10px 12px;font-size:15px}
+.spark{width:100%;height:70px;color:var(--accent2);margin-top:4px}.spark circle{fill:var(--accent2)}
+.spark-ax{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted)}
+.muted{color:var(--muted)}.small{font-size:12.5px}
+ul.bodies{margin:4px 0 0;padding-left:18px;font-size:14px}
+details.howto{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:14.5px}
+details.howto summary{cursor:pointer;font-weight:600}
+#map{height:560px}
+
 /* demo */
 .demo{display:grid;grid-template-columns:1fr;gap:14px}
 @media(min-width:820px){.demo{grid-template-columns:1fr 1fr}}
@@ -86,7 +108,7 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
       <div class="stat"><b>237k</b><span>open-contracting records analysed (PPDA, 2015–2026)</span></div>
       <div class="stat"><b>5,400</b><span>public works tenders · UGX 9.8 trillion awarded</span></div>
       <div class="stat"><b>18 + 2</b><span>explainable red flags, plus 2 machine-learning detectors</span></div>
-      <div class="stat"><b>67</b><span>districts mapped (3,325 local-government works records)</span></div>
+      <div class="stat"><b>119 / 135</b><span>districts on the interactive map (4,096 contracts, about 70% of works value)</span></div>
     </div>
   </div>
 </header>
@@ -113,28 +135,46 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
 
 <section id="map-section">
   <div class="wrap">
-    <h2>Interactive map: local-government works procurement</h2>
-    <p>Each district is shaded by the measure you choose. Click a district for its figures. The map covers works procured by <strong>district, municipal and city councils</strong> (3,325 records, UGX 1.1 trillion). Works procured by central-government bodies (ministries, UNRA, NWSC, etc.; about 3,000 records, UGX 12.2 trillion) are national and are not mapped. Grey districts have no local-government works records in the data.</p>
-    <div class="ctrl" id="metrics">
-      <button data-m="mean_risk" class="on">Mean risk score</button>
-      <button data-m="restricted_or_direct_share">Restricted / direct method share</button>
-      <button data-m="just_below_estimate_share">Awards just below estimate</button>
-      <button data-m="works_records">Number of works records</button>
-      <button data-m="works_value_ugx">Works value</button>
+    <h2>Interactive map: where public works money goes, and how it is spent</h2>
+    <p>The map places <strong>4,096 public works contracts</strong> (about 70% of all works value) in Uganda's 135 districts. Contracts procured by district, municipal and city councils sit in their own district. Contracts procured by central bodies (UNRA, ministries, NWSC and others) are placed using the place names in their titles. Pick a question, a measure, a year and a sector, then click a district.</p>
+    <div class="tabs" role="tablist" id="qtabs">
+      <button role="tab" data-q="money" class="on">① Where does the money go?</button>
+      <button role="tab" data-q="competition">② Is there real competition?</button>
+      <button role="tab" data-q="process">③ Is the price and process sound?</button>
     </div>
+    <div class="ctrl" id="metrics"></div>
+    <div class="ctrl2">
+      <label>Financial year <select id="year"></select></label>
+      <label>Sector <select id="sub">
+        <option value="all">All works</option><option value="roads">Roads &amp; bridges</option>
+        <option value="buildings">Buildings</option><option value="water">Water &amp; sanitation</option><option value="other_works">Other works</option>
+      </select></label>
+      <label class="chk"><input type="checkbox" id="hideSmall"> Hide districts with fewer than 10 contracts</label>
+    </div>
+    <p id="mdesc" class="mdesc"></p>
     <div class="mapgrid">
       <div>
         <div id="map" role="region" aria-label="Map of Uganda districts"></div>
-        <div class="legend"><span id="lmin">low</span><span class="bar"></span><span id="lmax">high</span></div>
+        <div class="legend" id="legend"></div>
+        <div class="legend-note"><span class="sw sw-small"></span> fewer than 10 contracts: interpret with care &nbsp; <span class="sw sw-none"></span> no data</div>
       </div>
       <div id="panel">
         <h3 id="pname">Click a district</h3>
-        <div id="pbody" style="color:var(--muted)">Hover over or tap a district to see its figures.</div>
-        <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
-        <p style="font-size:13.5px;color:var(--muted);margin:0"><b>How to read it.</b> <em>Mean risk score</em> (0–100) averages the explainable red flags across a district's works contracts. <em>Restricted / direct share</em> is the share procured without open bidding. <em>Awards just below estimate</em> is the share awarded at 99–100% of the official estimate. Districts with few records can look extreme by chance, so check the record count.</p>
+        <div id="pmeta" class="pmeta">Hover over or tap any district.</div>
+        <div id="pbody"></div>
       </div>
     </div>
-    <p style="font-size:13px;color:var(--muted)">Boundaries: Uganda districts (2020), Uganda Bureau of Statistics via geoBoundaries (CC BY 3.0 IGO). Base map © OpenStreetMap contributors.</p>
+    <details class="howto">
+      <summary>How to read the map, and its limits</summary>
+      <ul>
+        <li><b>Colours</b> split districts into five equal-sized groups (quintiles) for the chosen measure, year and sector. Darker means more of the measure, and for the risk measures, more concerning.</li>
+        <li><b>Comparison</b>: the panel compares each district with the national median, taken across districts with at least 10 contracts.</li>
+        <li><b>Locating central-government works</b>: when a title names several districts, its value is split equally between them. Some multi-district road lots are placed at the station named in the title. About 2,150 contracts (around 30% of value) name no place, such as headquarters works, and are not mapped.</li>
+        <li><b>Single bid</b> comes from bid records, some of which hold only the winning bid, so treat it as an upper bound.</li>
+        <li><b>Risk measures are indicators that call for review</b>, not findings of wrongdoing. No firm is named.</li>
+      </ul>
+    </details>
+    <p style="font-size:13px;color:var(--muted)">Boundaries (2020) and population (2022 projection): Uganda Bureau of Statistics, via geoBoundaries and HDX (CC BY-IGO). Base map © OpenStreetMap contributors.</p>
   </div>
 </section>
 
@@ -231,46 +271,111 @@ Firm Gamma Ltd</textarea>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ---------------- map ----------------
-const fmt = {
-  mean_risk: v => v.toFixed(1),
-  restricted_or_direct_share: v => (100*v).toFixed(0)+'%',
-  just_below_estimate_share: v => (100*v).toFixed(0)+'%',
-  works_records: v => v.toLocaleString(),
-  works_value_ugx: v => v>=1e9 ? 'UGX '+(v/1e9).toFixed(1)+'bn' : 'UGX '+(v/1e6).toFixed(0)+'m'
+const UGX = v => v>=1e12 ? 'UGX '+(v/1e12).toFixed(2)+'tn' : v>=1e9 ? 'UGX '+(v/1e9).toFixed(1)+'bn' : v>=1e6 ? 'UGX '+(v/1e6).toFixed(0)+'m' : 'UGX '+Math.round(v).toLocaleString();
+const PCT = v => (100*v).toFixed(0)+'%';
+const METRICS = {
+  money: [
+    {k:'value_per_capita', label:'Value per person', f:v=>UGX(v), d:'Works contract value divided by district population (2022). This is fairer than totals, which mostly track population.'},
+    {k:'value', label:'Total value', f:UGX, d:'Total value of works contracts located in the district.'},
+    {k:'n', label:'Number of contracts', f:v=>Math.round(v).toLocaleString(), d:'Works contracts located in the district (contracts naming several districts are split between them).'},
+  ],
+  competition: [
+    {k:'non_open_share', label:'Not openly bid', f:PCT, d:'Share of contract value procured by restricted, selective or direct methods instead of open bidding.'},
+    {k:'top_supplier_share', label:'Top supplier\'s share', f:PCT, d:'Share of the district\'s works value won by its single largest supplier. High values mean the market is concentrated. Firms are not named.'},
+    {k:'single_bid_share', label:'Single bid', f:PCT, d:'Share of procurements with bid data listing only one bid (an upper bound: some records hold only the winning bid).'},
+  ],
+  process: [
+    {k:'just_below_share', label:'Awards just below estimate', f:PCT, d:'Share of awards at 99–100% of the official estimate. Nationally this is far more common than competitive bidding would produce.'},
+    {k:'median_post_close_days', label:'Days: bids close → award', f:v=>Math.round(v)+' days', d:'Median days between bid closing and award: evaluation, approvals and notices.'},
+    {k:'mean_risk', label:'Mean risk score', f:v=>v.toFixed(1), d:'Average of the explainable red-flag score (0–100) across the district\'s works contracts.'},
+  ],
 };
 const ramp = ['#fef0d9','#fdcc8a','#fc8d59','#e34a33','#b30000'];
-let metric = 'mean_risk', layer, data, breaks;
-const map = L.map('map', {scrollWheelZoom:false}).setView([1.37, 32.3], 6.4);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 10, attribution:'© OpenStreetMap contributors'}).addTo(map);
-function quantiles(vals){ vals = vals.slice().sort((a,b)=>a-b); return [0.2,0.4,0.6,0.8].map(q => vals[Math.floor(q*(vals.length-1))]); }
-function color(v){ if(v==null) return '#cfcfcf'; let i=0; while(i<breaks.length && v>breaks[i]) i++; return ramp[i]; }
-function style(f){ const v=f.properties[metric]; return {weight:0.6,color:'#666',fillOpacity: v==null?0.35:0.8,fillColor:color(v)}; }
+let QTAB='money', M=METRICS.money[0], YEAR='all', SUB='all', layer, geo, MD, breaks, selected=null;
+const map = L.map('map', {scrollWheelZoom:false, zoomSnap:0.25}).setView([1.37, 32.3], 6.5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 11, attribution:'© OpenStreetMap contributors'}).addTo(map);
+const cell = d => (MD.data[d]||{})[YEAR+'|'+SUB];
+const val = d => { const c=cell(d); return c ? c[M.k] : null; };
+const small = d => { const c=cell(d); return c && c.records < MD.min_reliable; };
+function quint(vals){
+  vals=vals.slice().sort((a,b)=>a-b);
+  const q=[0.2,0.4,0.6,0.8].map(x=>vals[Math.floor(x*(vals.length-1))]);
+  if(new Set(q).size===4) return q;
+  const lo=vals[0], hi=vals[vals.length-1];           // many ties (e.g. lots of zeros): equal-width bands
+  return [1,2,3,4].map(i=>lo+(hi-lo)*i/5);
+}
+function color(v){ let i=0; while(i<breaks.length && v>breaks[i]) i++; return ramp[i]; }
+function style(f){
+  const d=f.properties.district, v=val(d), hide=document.getElementById('hideSmall').checked;
+  if(v==null || (hide && small(d))) return {weight:0.5,color:'#888',fillColor:'#cfcfcf',fillOpacity:0.35};
+  const s=small(d);
+  return {weight: d===selected?2.5:0.6, color: d===selected?'#111':(s?'#555':'#666'), dashArray: s?'3':null, fillColor:color(v), fillOpacity: s?0.4:0.82};
+}
+function legend(vals){
+  const el=document.getElementById('legend');
+  if(!vals.length){ el.innerHTML='No data for this selection.'; return; }
+  const lo=Math.min(...vals), hi=Math.max(...vals), edges=[lo,...breaks,hi];
+  el.innerHTML = ramp.map((c,i)=>`<span class="lg"><i style="background:${c}"></i>${M.f(edges[i])}–${M.f(edges[i+1])}</span>`).join('');
+}
+function spark(d){
+  const pts = MD.years.map(y=>{ const c=(MD.data[d]||{})[y+'|'+SUB]; return c && c[M.k]!=null ? c[M.k] : null; });
+  const ok = pts.filter(v=>v!=null); if(ok.length<2) return '<p class="muted small">Not enough yearly data for a trend.</p>';
+  const W=280,H=70,p=6, mx=Math.max(...ok), mn=Math.min(...ok), r=(mx-mn)||1;
+  const xs=i=>p+i*(W-2*p)/(pts.length-1), ys=v=>H-p-(v-mn)/r*(H-2*p);
+  let path='', pen=false; pts.forEach((v,i)=>{ if(v==null){pen=false;return;} path+=(pen?'L':'M')+xs(i).toFixed(1)+','+ys(v).toFixed(1); pen=true; });
+  const dots=pts.map((v,i)=>v==null?'':`<circle cx="${xs(i).toFixed(1)}" cy="${ys(v).toFixed(1)}" r="2.5"><title>${MD.years[i]}: ${M.f(v)}</title></circle>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" class="spark" role="img" aria-label="Trend of ${M.label} by year"><path d="${path}" fill="none" stroke="currentColor" stroke-width="1.8"/>${dots}</svg><div class="spark-ax"><span>${MD.years[0]}</span><span>${MD.years[MD.years.length-1]}</span></div>`;
+}
 function show(p){
+  selected=p.district; layer.setStyle(style);
   document.getElementById('pname').textContent = p.district;
-  const b = document.getElementById('pbody');
-  if(p.works_records==null){ b.innerHTML='No local-government works records in the data for this district.'; return; }
-  const rows = [['Works records',fmt.works_records(p.works_records)],['Works value',fmt.works_value_ugx(p.works_value_ugx)],
-    ['Procuring entities',p.entities],['Mean risk score',fmt.mean_risk(p.mean_risk)],['Records with 3+ flags',p.high_flag_records],
-    ['Restricted / direct share',p.restricted_or_direct_share==null?'n/a':fmt.restricted_or_direct_share(p.restricted_or_direct_share)],
-    ['Awards 99–100% of estimate',p.just_below_estimate_share==null?'n/a':fmt.just_below_estimate_share(p.just_below_estimate_share)]];
-  b.innerHTML = '<dl>'+rows.map(r=>`<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join('')+'</dl>'+(p.works_records<10?'<p style="font-size:13px;color:var(--accent)">Few records: interpret with care.</p>':'');
+  document.getElementById('pmeta').textContent = `${p.region||''} region · population ${p.population? p.population.toLocaleString():'n/a'}`;
+  const c=cell(p.district), b=document.getElementById('pbody');
+  if(!c){ b.innerHTML='<p class="muted">No works contracts located here for this year and sector.</p>'; return; }
+  const nat=(MD.national[YEAR+'|'+SUB]||{})[M.k];
+  const v=c[M.k];
+  let cmp='';
+  if(v!=null && nat!=null){ const diff=v-nat, up=diff>0; cmp=`<div class="cmp">${M.label}: <b>${M.f(v)}</b><br><span class="muted">National median ${M.f(nat)} · ${up?'▲ above':'▼ below'}</span></div>`; }
+  else if(v!=null){ cmp=`<div class="cmp">${M.label}: <b>${M.f(v)}</b></div>`; }
+  const rows=[['Contracts', Math.round(c.n).toLocaleString()+(c.records<MD.min_reliable?' (few: interpret with care)':'')],
+    ['Total value', UGX(c.value)], ['Value per person', c.value_per_capita!=null?UGX(c.value_per_capita):'n/a'],
+    ['Not openly bid', c.non_open_share!=null?PCT(c.non_open_share):'n/a'], ['Top supplier\'s share', c.top_supplier_share!=null?PCT(c.top_supplier_share):'n/a'],
+    ['Distinct suppliers', c.n_suppliers], ['Awards just below estimate', c.just_below_share!=null?PCT(c.just_below_share):'n/a'],
+    ['Days: bids close → award', c.median_post_close_days!=null?Math.round(c.median_post_close_days):'n/a'],
+    ['Mean risk score', c.mean_risk], ['Procured by local councils', c.council_value_share!=null?PCT(c.council_value_share)+' of value':'n/a']];
+  const bodies=(MD.bodies[p.district]||[]).map(x=>`<li>${x.name} <span class="muted small">(${x.kind==='council'?'council':'central, located by title'})</span></li>`).join('');
+  b.innerHTML = cmp + `<div class="muted small" style="margin-top:8px">Trend: ${M.label}${SUB!=='all'?' · '+SUB.replace('_',' '):''}</div>` + spark(p.district)
+    + '<dl>'+rows.map(r=>`<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join('')+'</dl>'
+    + (bodies?`<div class="muted small" style="margin-top:10px">Main public procuring bodies (all years)</div><ul class="bodies">${bodies}</ul>`:'');
 }
 function render(){
-  const vals = data.features.map(f=>f.properties[metric]).filter(v=>v!=null);
-  breaks = quantiles(vals);
-  document.getElementById('lmin').textContent = fmt[metric](Math.min(...vals));
-  document.getElementById('lmax').textContent = fmt[metric](Math.max(...vals));
+  const vals = geo.features.map(f=>val(f.properties.district)).filter(v=>v!=null);
+  breaks = quint(vals); legend(vals);
+  document.getElementById('mdesc').textContent = M.d;
   if(layer) map.removeLayer(layer);
-  layer = L.geoJSON(data,{style, onEachFeature:(f,l)=>{
-    const p=f.properties;
-    l.bindTooltip(`${p.district}: ${p[metric]==null?'no data':fmt[metric](p[metric])}`,{sticky:true});
-    l.on({click:()=>show(p), mouseover:()=>show(p)});
+  layer = L.geoJSON(geo,{style, onEachFeature:(f,l)=>{
+    const d=f.properties.district;
+    l.bindTooltip(()=>{ const v=val(d); return `<b>${d}</b><br>${M.label}: ${v==null?'no data':M.f(v)}${small(d)?' (few contracts)':''}`; },{sticky:true});
+    l.on({click:()=>show(f.properties)});
   }}).addTo(map);
+  if(selected){ const f=geo.features.find(x=>x.properties.district===selected); if(f) show(f.properties); }
 }
-fetch('data/districts.geojson').then(r=>r.json()).then(g=>{ data=g; render(); map.fitBounds(L.geoJSON(g).getBounds()); });
-document.querySelectorAll('#metrics button').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('#metrics button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); metric=b.dataset.m; render();
+function buildMetricButtons(){
+  const el=document.getElementById('metrics');
+  el.innerHTML = METRICS[QTAB].map((m,i)=>`<button data-i="${i}" class="${m.k===M.k?'on':''}">${m.label}</button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ M=METRICS[QTAB][+b.dataset.i]; buildMetricButtons(); render(); }));
+}
+document.querySelectorAll('#qtabs button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#qtabs button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  QTAB=b.dataset.q; M=METRICS[QTAB][0]; buildMetricButtons(); render();
 }));
+['year','sub'].forEach(id=>document.getElementById(id).addEventListener('change',e=>{ if(id==='year') YEAR=e.target.value; else SUB=e.target.value; render(); }));
+document.getElementById('hideSmall').addEventListener('change',()=>layer.setStyle(style));
+Promise.all([fetch('data/districts.geojson').then(r=>r.json()), fetch('data/district_metrics.json').then(r=>r.json())]).then(([g,m])=>{
+  geo=g; MD=m;
+  document.getElementById('year').innerHTML = '<option value="all">All years</option>' + m.years.slice().reverse().map(y=>`<option value="${y}">${y}</option>`).join('');
+  buildMetricButtons(); render(); map.fitBounds(L.geoJSON(g).getBounds());
+});
 
 // ---------------- blind evaluation demo (BigInt modular arithmetic) ----------------
 const P = BigInt('0x'+
