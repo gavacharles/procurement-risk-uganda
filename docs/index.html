@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Procurement Risk Monitor — Uganda</title>
+<meta name="description" content="Open, explainable fraud-risk analytics for public construction procurement, with Uganda as the first case study.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Source+Serif+4:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fbfaf7;--fg:#1d2228;--muted:#5b6570;--card:#ffffff;--line:#e4e1da;--accent:#b4442c;--accent2:#2c5f8a;--chip:#f1ede4}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171b;--fg:#e8e6e1;--muted:#a3aab2;--card:#1c2026;--line:#2c323a;--accent:#e07a5f;--accent2:#7fb0d8;--chip:#252a31}}
+:root[data-theme="dark"]{--bg:#14171b;--fg:#e8e6e1;--muted:#a3aab2;--card:#1c2026;--line:#2c323a;--accent:#e07a5f;--accent2:#7fb0d8;--chip:#252a31}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 Inter,system-ui,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+header{border-bottom:1px solid var(--line);padding:56px 0 40px}
+.kicker{color:var(--accent);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:13px}
+h1{font-family:"Source Serif 4",Georgia,serif;font-size:clamp(30px,5vw,48px);line-height:1.15;margin:10px 0 16px}
+h2{font-family:"Source Serif 4",Georgia,serif;font-size:28px;margin:0 0 12px}
+h3{font-size:18px;margin:0 0 6px}
+p.lead{font-size:19px;color:var(--muted);max-width:720px}
+section{padding:44px 0;border-bottom:1px solid var(--line)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:28px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+.stat b{display:block;font-size:26px;color:var(--accent2)}
+.stat span{color:var(--muted);font-size:14px}
+.finding{display:grid;grid-template-columns:1fr;gap:16px;margin:28px 0}
+@media(min-width:820px){.finding{grid-template-columns:1fr 1.2fr;align-items:center}}
+.finding img{width:100%;border-radius:8px;border:1px solid var(--line);background:#fff}
+.num{font-size:40px;font-weight:700;color:var(--accent);line-height:1}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.chip{display:inline-block;background:var(--chip);border-radius:99px;padding:2px 10px;font-size:13px;margin:2px 4px 2px 0}
+.note{border-left:3px solid var(--accent);padding:10px 16px;background:var(--card);color:var(--muted);font-size:15px}
+ol.road li{margin-bottom:8px}
+a{color:var(--accent2)}
+footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
+table{border-collapse:collapse;width:100%;font-size:15px}
+td,th{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left}
+th{color:var(--muted);font-weight:600}
+.tw{overflow-x:auto}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="kicker">Open research project · Uganda case study</div>
+    <h1>Detecting fraud risk in public construction procurement, using open data</h1>
+    <p class="lead">An open-source, explainable risk monitor that reads the public procurement record and helps auditors decide where to look. It flags suspicious tenders, suppliers and bidder groups, ranks contracts for audit, and points to ways procurement could move faster without weakening integrity.</p>
+    <div class="stats">
+      <div class="stat"><b>237k</b><span>OCDS records analysed (PPDA, 2015–2026)</span></div>
+      <div class="stat"><b>5,400</b><span>public works tenders · UGX 9.8 trillion awarded</span></div>
+      <div class="stat"><b>18</b><span>explainable red flags, each with a plain-language reason</span></div>
+      <div class="stat"><b>206 days</b><span>median time from advert to award</span></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>Why</h2>
+    <p>Construction is where public money is most exposed: contracts are large and one-off, quality is hard to verify, and costs change after award. Oversight bodies have limited auditors and usually choose audits by rotation or after complaints. Uganda's Public Procurement and Disposal of Public Assets Authority (PPDA) publishes its procurement record in the <a href="https://standard.open-contracting.org/">Open Contracting Data Standard</a>, which makes risk-based oversight possible.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What the data shows</h2>
+    <p class="note">These are statistical risk indicators that call for review. They are not findings of wrongdoing against any entity or firm.</p>
+
+    <div class="finding">
+      <div>
+        <div class="num">5.3×</div>
+        <h3>Awards bunch just below the official estimate</h3>
+        <p>1,976 works contracts were awarded at 97–100% of the entity's estimate, where a smooth distribution predicts about 316. The excess holds under open competitive bidding (4.5×) and in all 24 robustness specifications we ran (3.4× to 12×). Possible causes are leaked estimates, estimates revised after award, or bidders anchoring on a published budget.</p>
+      </div>
+      <img src="img/fig1_bunching.png" alt="Histogram of award-to-estimate ratios with a sharp spike just below 1.0 and a smooth counterfactual curve">
+    </div>
+
+    <div class="finding">
+      <div>
+        <div class="num">205</div>
+        <h3>Recurring bidder groups with rotating winners</h3>
+        <p>450 identical groups of firms bid together in three or more procurements. In 205 of them the win passes between members. The largest group of three firms bid together 255 times for a single entity, a textbook bid-rotation pattern or, at best, a closed shortlist.</p>
+      </div>
+      <div class="card"><h3>Also found</h3><p>Roughly a third of supplier IDs are spelling variants of the same firm (24,707 → 16,561). That has to be fixed before anyone can reliably monitor suppliers.</p></div>
+    </div>
+
+    <div class="finding">
+      <div>
+        <div class="num">73%</div>
+        <h3>of procurement time comes after bids close</h3>
+        <p>The median works procurement takes 206 days. Only 43 are the bidding window; 138 come between bid closing and award. Procurements with no red flags wait as long as risky ones.</p>
+      </div>
+      <img src="img/fig2_postclose_by_tier.png" alt="Distributions of days from bid closing to award by risk tier, largely overlapping">
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Could this shorten procurement in Uganda?</h2>
+    <p>Possibly, if it is used to <em>target</em> oversight rather than add to it. About 54% of works procurements carry no meaningful red flags. A three-lane model would give them a fast lane, with automated document checks and fixed approval times, and concentrate scrutiny on the 7% that are high-risk.</p>
+    <div class="tw"><table>
+      <tr><th>Scenario</th><th>Median cycle</th></tr>
+      <tr><td>Today (all procurements processed the same way)</td><td>206 days</td></tr>
+      <tr><td>Low-risk procurements finish post-closing steps at the pace their fastest quarter already achieves</td><td>≈ 144 days</td></tr>
+    </table></div>
+    <p style="color:var(--muted);font-size:14px">This is an illustrative scenario, not a causal estimate. The real savings depend on which steps cause the delays.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>The product</h2>
+    <div class="cards">
+      <div class="card"><h3>Audit priority list</h3><p>Every works contract ranked by risk weighted by value, with the reasons it was flagged.</p></div>
+      <div class="card"><h3>Audit plan optimiser</h3><p>Picks the contracts that cover the most value at risk within a set number of auditor-days.</p></div>
+      <div class="card"><h3>Collusion signals</h3><p>Repeated bidder groups, rotating winners, co-bidding networks and name-variant bidders.</p></div>
+      <div class="card"><h3>Entity &amp; supplier profiles</h3><p>Concentration, method use, single-bid rates and Benford's Law checks.</p></div>
+    </div>
+    <p style="margin-top:18px">
+      <span class="chip">Statistics &amp; inference</span><span class="chip">Bunching estimation</span><span class="chip">Benford's Law</span>
+      <span class="chip">Graph theory</span><span class="chip">Eigenvector centrality</span><span class="chip">Optimisation (knapsack)</span><span class="chip">Machine learning (next)</span>
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>An honest limitation</h2>
+    <p>We tested the flags against providers that PPDA has suspended, and they did <strong>not</strong> score higher. Most of those suspensions (36 of 43) were for forged documents, which price and competition screens can't see. A complete system needs automated document verification (bid securities, registration certificates) alongside statistical screens.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Research outputs (in preparation)</h2>
+    <div class="cards">
+      <div class="card"><h3>Paper 1</h3><p><em>Bunching at the Estimate: Red-Flag Evidence of Integrity Risk in Uganda's Public Works Procurement.</em></p></div>
+      <div class="card"><h3>Paper 2</h3><p><em>Faster and Cleaner? Risk-Based Oversight and Procurement Cycle Times in Uganda's Public Works.</em></p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Roadmap</h2>
+    <ol class="road">
+      <li><strong>Done:</strong> data pipeline, works classifier, 18 red flags, collusion detection, MVP dashboard, first findings.</li>
+      <li><strong>Next:</strong> validate thresholds against the PPDA Regulations; hand-label a sample to validate the works classifier; link tender and bid records.</li>
+      <li>Match suppliers to the URSB company registry (directors, addresses) for ownership networks.</li>
+      <li>Build a labelled dataset from audit findings to train supervised models.</li>
+      <li>Pilot with oversight institutions; add blind bid evaluation (anonymised bidder codes).</li>
+      <li>Extend to other sectors and other countries that publish OCDS.</li>
+    </ol>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Data: PPDA Government Procurement Portal via the <a href="https://data.open-contracting.org/en/publication/130">Open Contracting Data Registry</a>. Firms are not named on this page.
+    Code: <a href="https://github.com/gavacharles/procurement-risk-uganda">github.com/gavacharles/procurement-risk-uganda</a>.
+  </div>
+</footer>
+</body>
+</html>
