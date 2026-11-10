@@ -205,7 +205,11 @@ The concept notes cover a wide range: blind bid review, network analysis, spectr
 - [x] Blind bid evaluation and private conflict-of-interest check (modular exponentiation over a 2048-bit prime field), with tests
 - [x] Interactive district map on the public site (67 districts with data)
 - [x] Site section mapping each concept-note principle to code and status; author credit and CITATION.cff
-- [ ] Paper 1 test: plan/invitation-stage vs award-stage estimate, and estimates entered before vs after award (PPDA bid-invitations crawl in progress)
+- [x] Paper 1 mechanism test on a random ~5,000-record sample: entry timing does NOT explain bunching (25% vs 24%); records edited after award bunch more (26.5% vs 12.7%, p=0.003, but confounded by routine edits)
+- [x] Classifier validated against PPDA official category: precision 0.94, recall 0.68
+- [x] **Correction:** OCDS award date = portal entry date. Real works cycle ≈ 43 days (31 after closing); awards published a median of 118 days late; 81% of tenders entered after award. Site, posts and Paper 2 corrected or flagged.
+- [x] Map rebuilt: 3 question tabs, year and sector filters, per-person value, central-government works located by title (119 districts, ~70% of value)
+- [ ] Full bid-invitations crawl (resumes after network drops) → re-run on full data; re-base works sample on official category
 
 ## 9. Immediate next steps
 1. Validate thresholds against the PPDA Regulations (bidding periods, method thresholds).
