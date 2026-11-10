@@ -12,7 +12,7 @@ Tests
   T3  Later edits.    Was the record updated after the award date?
   V   Classifier validation: PPDA's official WRKS type vs our title-based works classifier.
 
-Works with a partial crawl (random-page sample and/or the main crawl). Writes
+Uses the random-page sample (target 500 pages ≈ 5,000 records) by default. Writes
 paper/estimate_timing.json and paper/tables/t6_estimate_timing.csv.
 """
 from __future__ import annotations
@@ -33,9 +33,11 @@ P = ROOT / "data" / "processed"
 OUT = ROOT / "paper"
 
 
-def load_invitations() -> pd.DataFrame:
-    parts = [pd.read_json(f, lines=True, dtype=False) for f in
-             [RAW / "bid_invitations.jsonl", RAW / "bid_invitations_sample.jsonl"] if f.exists() and f.stat().st_size]
+def load_invitations(sample_only: bool = True) -> pd.DataFrame:
+    """Default: the random-page sample only (a clean random design across all years).
+    sample_only=False also adds the newest-first main crawl, which over-represents recent years."""
+    files = [RAW / "bid_invitations_sample.jsonl"] + ([] if sample_only else [RAW / "bid_invitations.jsonl"])
+    parts = [pd.read_json(f, lines=True, dtype=False) for f in files if f.exists() and f.stat().st_size]
     bi = pd.concat(parts, ignore_index=True).drop_duplicates("id", keep="last")
     for c in ["created_at", "updated_at", "bid_openning_date", "bid_submission_deadline_date", "contract_award_date",
               "invitation_to_bid_date", "display_of_beb_notice_date", "contract_signature_date"]:
@@ -61,7 +63,8 @@ def boot_diff(a: pd.Series, b: pd.Series, n=2000, seed=0):
 
 def main() -> None:
     bi = load_invitations()
-    res: dict = {"invitations_loaded": int(len(bi)),
+    res: dict = {"design": "random sample of PPDA /bid-invitations pages (all years)",
+                 "invitations_loaded": int(len(bi)),
                  "financial_years": bi.financial_year.value_counts().sort_index().to_dict()}
 
     # ---- V: classifier validation on official type
