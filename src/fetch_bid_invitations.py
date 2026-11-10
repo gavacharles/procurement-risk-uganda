@@ -101,7 +101,13 @@ def sample(n_pages: int, seed: int = 7) -> None:
         for i, page in enumerate(pages, 1):
             if page in done:
                 continue
-            for r in get(f"{API}?page={page}")["data"]["data"]:
+            try:
+                recs = get(f"{API}?page={page}", tries=3)["data"]["data"]
+            except Exception as e:  # skip pages the server cannot serve; keep going
+                print(f"skip page {page}: {e}", flush=True)
+                time.sleep(30)
+                continue
+            for r in recs:
                 fh.write(json.dumps(compact(r)) + "\n")
             fh.flush()
             df.write(f"{page}\n")
