@@ -1,6 +1,6 @@
-data/
-reports/
-paper/
+/data/
+/reports/
+/paper/
 *.docx
 __pycache__/
 *.pyc

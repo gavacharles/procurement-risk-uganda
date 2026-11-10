@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software or its findings, please cite it as below."
+title: "Procurement Risk Monitor: Uganda public works case study"
+authors:
+  - family-names: Gava
+    given-names: Charles
+type: software
+date-released: 2026-11-10
+url: "https://gavacharles.github.io/procurement-risk-uganda/"
+repository-code: "https://github.com/gavacharles/procurement-risk-uganda"
+keywords: [public procurement, fraud detection, corruption risk, open contracting, Uganda, construction]

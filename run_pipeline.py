@@ -30,6 +30,8 @@ def main() -> None:
         download()
     import analysis
     import entities
+    import geo
+    import ml_models
     import ingest
     import ppda_api
     import network
@@ -43,6 +45,8 @@ def main() -> None:
     print("== report"); report.main()
     print("== PPDA API supplements"); ppda_api.main()
     print("== paper analyses"); analysis.main()
+    print("== ML / NLP"); ml_models.main()
+    print("== map data"); geo.main()
 
 
 if __name__ == "__main__":
