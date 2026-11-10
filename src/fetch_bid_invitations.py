@@ -88,6 +88,30 @@ def crawl() -> None:
     print("crawl complete", flush=True)
 
 
+def sample(n_pages: int, seed: int = 7) -> None:
+    """Random-page sample across all years (for a preliminary, representative analysis)."""
+    import random
+
+    out = RAW / "bid_invitations_sample.jsonl"
+    done_f = RAW / "bid_invitations_sample.pages"
+    done = set(map(int, done_f.read_text().split())) if done_f.exists() else set()
+    last = get(f"{API}?page=1")["data"]["last_page"]
+    pages = random.Random(seed).sample(range(1, last + 1), n_pages)
+    with out.open("a") as fh, done_f.open("a") as df:
+        for i, page in enumerate(pages, 1):
+            if page in done:
+                continue
+            for r in get(f"{API}?page={page}")["data"]["data"]:
+                fh.write(json.dumps(compact(r)) + "\n")
+            fh.flush()
+            df.write(f"{page}\n")
+            df.flush()
+            if i % 25 == 0:
+                print(f"sample {i}/{n_pages}", flush=True)
+            time.sleep(PAUSE)
+    print("sample complete", flush=True)
+
+
 def build() -> None:
     import pandas as pd
 
@@ -97,6 +121,9 @@ def build() -> None:
 
 
 if __name__ == "__main__":
+    if "--sample" in sys.argv:
+        sample(int(sys.argv[sys.argv.index("--sample") + 1]))
+        sys.exit()
     if "--build-only" not in sys.argv:
         crawl()
     build()
