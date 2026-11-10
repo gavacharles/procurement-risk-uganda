@@ -1,5 +1,7 @@
 # Uganda Construction Procurement Risk Monitor
 
+**By Charles Gava** (concept, research design and direction) · [Project site](https://gavacharles.github.io/procurement-risk-uganda/) · [How to cite](CITATION.cff)
+
 Fraud-risk analytics for public construction (works) procurement, with Uganda as the first case study.
 See [EXECUTION.md](EXECUTION.md) for the plan and [reports/exploratory_report.md](reports/exploratory_report.md) for current findings.
 
@@ -39,7 +41,25 @@ PPDA's own API (`https://cdn.ppda.go.ug/api`) has extra public endpoints not yet
 | Red flags + risk score | `src/red_flags.py` | `works_tenders_scored`, `works_bids_scored`, `bidder_sets`, `supplier_profiles`, `buyer_profiles` |
 | Co-bidding network | `src/network.py` | `network_{nodes,edges,clusters}[_works]` |
 | Findings report | `src/report.py` | `reports/exploratory_report.md`, `reports/top_risk_works_contracts.csv` |
+| Machine learning + NLP | `src/ml_models.py` | `ml_anomaly`, `split_candidates`, `paper/ml_results.json` |
+| Blind evaluation (number theory) | `src/blind_eval.py` | prototype + `tests/test_blind_eval.py` |
+| District map data | `src/geo.py` | `docs/data/districts.geojson` |
+| PPDA bid invitations crawl | `src/fetch_bid_invitations.py` | `bid_invitations` (≈6 h, resumable) |
 | Dashboard | `app.py` | overview, audit priority list, audit plan optimiser, collusion signals, supplier and entity profiles |
+
+## Mathematics and machine learning used
+
+| Principle (from the concept note) | Where |
+|---|---|
+| Statistics & inference: bunching estimator, bootstrap, robust outliers | `analysis.py`, `red_flags.py` |
+| Benford's Law | `red_flags.py` |
+| Graph theory / network science: co-bidding network, Louvain communities | `network.py` |
+| Linear algebra / spectral analysis: eigenvector centrality | `network.py` |
+| Optimisation: knapsack audit planner; least-squares counterfactual | `app.py`, `analysis.py` |
+| Machine learning (unsupervised): Isolation Forest | `ml_models.py` |
+| NLP: works classifier; TF-IDF contract-splitting detector | `classify.py`, `ml_models.py` |
+| Number theory & finite fields: blind bid codes, private conflict-of-interest check | `blind_eval.py` |
+| Supervised ML (fraud probability) | planned: needs labelled cases |
 
 ## Layout
 

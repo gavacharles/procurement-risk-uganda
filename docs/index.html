@@ -4,27 +4,33 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Procurement Risk Monitor — Uganda</title>
-<meta name="description" content="Open, explainable fraud-risk analytics for public construction procurement, with Uganda as the first case study.">
+<meta name="description" content="Open, explainable fraud-risk analytics for public construction procurement, with Uganda as the first case study. A project by Charles Gava.">
+<meta name="author" content="Charles Gava">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Source+Serif+4:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root{--bg:#fbfaf7;--fg:#1d2228;--muted:#5b6570;--card:#ffffff;--line:#e4e1da;--accent:#b4442c;--accent2:#2c5f8a;--chip:#f1ede4}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171b;--fg:#e8e6e1;--muted:#a3aab2;--card:#1c2026;--line:#2c323a;--accent:#e07a5f;--accent2:#7fb0d8;--chip:#252a31}}
-:root[data-theme="dark"]{--bg:#14171b;--fg:#e8e6e1;--muted:#a3aab2;--card:#1c2026;--line:#2c323a;--accent:#e07a5f;--accent2:#7fb0d8;--chip:#252a31}
+:root{--bg:#fbfaf7;--fg:#1d2228;--muted:#5b6570;--card:#ffffff;--line:#e4e1da;--accent:#b4442c;--accent2:#2c5f8a;--chip:#f1ede4;--ok:#2e7d4f;--plan:#9a6b00;--code:#f3f1ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171b;--fg:#e8e6e1;--muted:#a3aab2;--card:#1c2026;--line:#2c323a;--accent:#e07a5f;--accent2:#7fb0d8;--chip:#252a31;--ok:#6fcf97;--plan:#e2b552;--code:#20252c}}
+:root[data-theme="dark"]{--bg:#14171b;--fg:#e8e6e1;--muted:#a3aab2;--card:#1c2026;--line:#2c323a;--accent:#e07a5f;--accent2:#7fb0d8;--chip:#252a31;--ok:#6fcf97;--plan:#e2b552;--code:#20252c}
 *{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 Inter,system-ui,sans-serif}
-.wrap{max-width:980px;margin:0 auto;padding:0 16px}
-header{border-bottom:1px solid var(--line);padding:56px 0 40px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+nav{position:sticky;top:0;z-index:1000;background:var(--bg);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:18px;overflow-x:auto;padding-top:10px;padding-bottom:10px;font-size:14px;white-space:nowrap}
+nav a{color:var(--muted);text-decoration:none}nav a:hover{color:var(--accent)}
+header{border-bottom:1px solid var(--line);padding:48px 0 36px}
 .kicker{color:var(--accent);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:13px}
-h1{font-family:"Source Serif 4",Georgia,serif;font-size:clamp(30px,5vw,48px);line-height:1.15;margin:10px 0 16px}
+h1{font-family:"Source Serif 4",Georgia,serif;font-size:clamp(30px,5vw,46px);line-height:1.15;margin:10px 0 14px}
 h2{font-family:"Source Serif 4",Georgia,serif;font-size:28px;margin:0 0 12px}
 h3{font-size:18px;margin:0 0 6px}
-p.lead{font-size:19px;color:var(--muted);max-width:720px}
+.byline{font-size:15px;color:var(--muted);margin:0 0 14px}.byline b{color:var(--fg)}
+p.lead{font-size:19px;color:var(--muted);max-width:760px}
 section{padding:44px 0;border-bottom:1px solid var(--line)}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:28px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:26px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
-.stat b{display:block;font-size:26px;color:var(--accent2)}
-.stat span{color:var(--muted);font-size:14px}
+.stat b{display:block;font-size:26px;color:var(--accent2)}.stat span{color:var(--muted);font-size:14px}
 .finding{display:grid;grid-template-columns:1fr;gap:16px;margin:28px 0}
 @media(min-width:820px){.finding{grid-template-columns:1fr 1.2fr;align-items:center}}
 .finding img{width:100%;border-radius:8px;border:1px solid var(--line);background:#fff}
@@ -34,42 +40,61 @@ section{padding:44px 0;border-bottom:1px solid var(--line)}
 .card p{margin:0;color:var(--muted);font-size:15px}
 .chip{display:inline-block;background:var(--chip);border-radius:99px;padding:2px 10px;font-size:13px;margin:2px 4px 2px 0}
 .note{border-left:3px solid var(--accent);padding:10px 16px;background:var(--card);color:var(--muted);font-size:15px}
-ol.road li{margin-bottom:8px}
 a{color:var(--accent2)}
-footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
-table{border-collapse:collapse;width:100%;font-size:15px}
-td,th{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left}
-th{color:var(--muted);font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+td,th{border-bottom:1px solid var(--line);padding:9px 8px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.03em}
 .tw{overflow-x:auto}
+code{background:var(--code);padding:1px 6px;border-radius:4px;font-size:13px}
+.st{font-weight:600;font-size:13px;white-space:nowrap}.st.ok{color:var(--ok)}.st.plan{color:var(--plan)}
+/* map */
+.mapgrid{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:900px){.mapgrid{grid-template-columns:2fr 1fr}}
+#map{height:520px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.ctrl button{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:99px;padding:6px 14px;cursor:pointer}
+.ctrl button.on{background:var(--accent2);border-color:var(--accent2);color:#fff}
+#panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;font-size:15px}
+#panel dl{display:grid;grid-template-columns:auto auto;gap:6px 14px;margin:10px 0 0}
+#panel dt{color:var(--muted)}#panel dd{margin:0;text-align:right;font-weight:600}
+.legend{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend .bar{height:10px;flex:1;border-radius:5px;background:linear-gradient(90deg,#fef0d9,#fdcc8a,#fc8d59,#e34a33,#b30000)}
+.leaflet-container{font:inherit}
+/* demo */
+.demo{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:820px){.demo{grid-template-columns:1fr 1fr}}
+textarea,input[type=text]{width:100%;font:inherit;font-size:14px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:10px}
+.btn{font:inherit;font-size:14px;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 16px;cursor:pointer;margin-top:8px}
+.out{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:var(--code);border-radius:8px;padding:12px;min-height:80px;white-space:pre-wrap;overflow-wrap:anywhere}
+footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
+.credit{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-top:6px}
 </style>
 </head>
 <body>
+<nav><div class="wrap">
+  <a href="#findings">Findings</a><a href="#map-section">Interactive map</a><a href="#maths">Maths &amp; ML</a>
+  <a href="#blind">Blind evaluation demo</a><a href="#time">Faster procurement</a><a href="#product">Product</a><a href="#about">About</a>
+</div></nav>
+
 <header>
   <div class="wrap">
     <div class="kicker">Open research project · Uganda case study</div>
     <h1>Detecting fraud risk in public construction procurement, using open data</h1>
+    <p class="byline">A project by <b>Charles Gava</b>: concept, research design and direction.</p>
     <p class="lead">An open-source, explainable risk monitor that reads the public procurement record and helps auditors decide where to look. It flags suspicious tenders, suppliers and bidder groups, ranks contracts for audit, and points to ways procurement could move faster without weakening integrity.</p>
     <div class="stats">
-      <div class="stat"><b>237k</b><span>OCDS records analysed (PPDA, 2015–2026)</span></div>
+      <div class="stat"><b>237k</b><span>open-contracting records analysed (PPDA, 2015–2026)</span></div>
       <div class="stat"><b>5,400</b><span>public works tenders · UGX 9.8 trillion awarded</span></div>
-      <div class="stat"><b>18</b><span>explainable red flags, each with a plain-language reason</span></div>
-      <div class="stat"><b>206 days</b><span>median time from advert to award</span></div>
+      <div class="stat"><b>18 + 2</b><span>explainable red flags, plus 2 machine-learning detectors</span></div>
+      <div class="stat"><b>67</b><span>districts mapped (3,325 local-government works records)</span></div>
     </div>
   </div>
 </header>
 
-<section>
-  <div class="wrap">
-    <h2>Why</h2>
-    <p>Construction is where public money is most exposed: contracts are large and one-off, quality is hard to verify, and costs change after award. Oversight bodies have limited auditors and usually choose audits by rotation or after complaints. Uganda's Public Procurement and Disposal of Public Assets Authority (PPDA) publishes its procurement record in the <a href="https://standard.open-contracting.org/">Open Contracting Data Standard</a>, which makes risk-based oversight possible.</p>
-  </div>
-</section>
-
-<section>
+<section id="findings">
   <div class="wrap">
     <h2>What the data shows</h2>
-    <p class="note">These are statistical risk indicators that call for review. They are not findings of wrongdoing against any entity or firm.</p>
-
+    <p class="note">These are statistical risk indicators that call for review. They are not findings of wrongdoing against any entity or firm, and no firm is named on this site.</p>
     <div class="finding">
       <div>
         <div class="num">5.3×</div>
@@ -78,41 +103,98 @@ th{color:var(--muted);font-weight:600}
       </div>
       <img src="img/fig1_bunching.png" alt="Histogram of award-to-estimate ratios with a sharp spike just below 1.0 and a smooth counterfactual curve">
     </div>
-
-    <div class="finding">
-      <div>
-        <div class="num">205</div>
-        <h3>Recurring bidder groups with rotating winners</h3>
-        <p>450 identical groups of firms bid together in three or more procurements. In 205 of them the win passes between members. The largest group of three firms bid together 255 times for a single entity, a textbook bid-rotation pattern or, at best, a closed shortlist.</p>
-      </div>
-      <div class="card"><h3>Also found</h3><p>Roughly a third of supplier IDs are spelling variants of the same firm (24,707 → 16,561). That has to be fixed before anyone can reliably monitor suppliers.</p></div>
+    <div class="cards">
+      <div class="card"><h3>205 rotating bidder groups</h3><p>Identical groups of firms that bid together in 3+ procurements while the win passes between members. The largest group of three firms bid together 255 times for a single entity.</p></div>
+      <div class="card"><h3>21 possible contract splits</h3><p>Near-identical contracts from the same entity, awarded within 60 days without open bidding or to the same supplier. Found by text similarity (NLP) across 13 entities.</p></div>
+      <div class="card"><h3>⅓ duplicate supplier IDs</h3><p>24,707 supplier IDs collapse to 16,561 firms once spelling variants are merged. That has to be fixed before suppliers can be monitored reliably.</p></div>
     </div>
+  </div>
+</section>
 
+<section id="map-section">
+  <div class="wrap">
+    <h2>Interactive map: local-government works procurement</h2>
+    <p>Each district is shaded by the measure you choose. Click a district for its figures. The map covers works procured by <strong>district, municipal and city councils</strong> (3,325 records, UGX 1.1 trillion). Works procured by central-government bodies (ministries, UNRA, NWSC, etc.; about 3,000 records, UGX 12.2 trillion) are national and are not mapped. Grey districts have no local-government works records in the data.</p>
+    <div class="ctrl" id="metrics">
+      <button data-m="mean_risk" class="on">Mean risk score</button>
+      <button data-m="restricted_or_direct_share">Restricted / direct method share</button>
+      <button data-m="just_below_estimate_share">Awards just below estimate</button>
+      <button data-m="works_records">Number of works records</button>
+      <button data-m="works_value_ugx">Works value</button>
+    </div>
+    <div class="mapgrid">
+      <div>
+        <div id="map" role="region" aria-label="Map of Uganda districts"></div>
+        <div class="legend"><span id="lmin">low</span><span class="bar"></span><span id="lmax">high</span></div>
+      </div>
+      <div id="panel">
+        <h3 id="pname">Click a district</h3>
+        <div id="pbody" style="color:var(--muted)">Hover over or tap a district to see its figures.</div>
+        <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+        <p style="font-size:13.5px;color:var(--muted);margin:0"><b>How to read it.</b> <em>Mean risk score</em> (0–100) averages the explainable red flags across a district's works contracts. <em>Restricted / direct share</em> is the share procured without open bidding. <em>Awards just below estimate</em> is the share awarded at 99–100% of the official estimate. Districts with few records can look extreme by chance, so check the record count.</p>
+      </div>
+    </div>
+    <p style="font-size:13px;color:var(--muted)">Boundaries: Uganda districts (2020), Uganda Bureau of Statistics via geoBoundaries (CC BY 3.0 IGO). Base map © OpenStreetMap contributors.</p>
+  </div>
+</section>
+
+<section id="maths">
+  <div class="wrap">
+    <h2>How the mathematics and machine learning are used</h2>
+    <p>The project began with a concept note proposing a specific toolkit of mathematics, data science and machine learning. The table maps each proposed principle to what it does in the system, where it lives in the <a href="https://github.com/gavacharles/procurement-risk-uganda">open-source code</a>, and whether it is built yet.</p>
+    <div class="tw"><table>
+      <tr><th>Proposed principle</th><th>What it does here</th><th>Code</th><th>Status</th></tr>
+      <tr><td><b>Statistics &amp; statistical inference</b></td><td>Bunching estimator with bootstrap confidence intervals detects the excess of awards just below the estimate; robust outlier tests (median absolute deviation) find abnormal contract values; 24 robustness and 4 placebo tests.</td><td><code>analysis.py</code><br><code>red_flags.py</code></td><td><span class="st ok">● Built</span></td></tr>
+      <tr><td><b>Benford's Law</b></td><td>First-digit test of each entity's award values (mean absolute deviation vs. Benford); the 10% of entities that deviate most are flagged.</td><td><code>red_flags.py</code></td><td><span class="st ok">● Built</span></td></tr>
+      <tr><td><b>Graph theory &amp; network science</b></td><td>Co-bidding network (553 construction firms, 1,333 links); Louvain community detection finds closed bidder clusters; repeated bidder groups and rotating winners.</td><td><code>network.py</code></td><td><span class="st ok">● Built</span></td></tr>
+      <tr><td><b>Linear algebra: spectral analysis</b></td><td>The network is a weighted adjacency matrix. Its leading eigenvector (eigenvector centrality) ranks the most influential firms in each component.</td><td><code>network.py</code></td><td><span class="st ok">● Built</span></td></tr>
+      <tr><td><b>Calculus &amp; optimisation</b></td><td>Audit-plan optimiser: a 0–1 knapsack that picks the contracts covering the most value at risk within a set number of auditor-days. A polynomial counterfactual (least squares) is used in the bunching estimator.</td><td><code>app.py</code><br><code>analysis.py</code></td><td><span class="st ok">● Built</span></td></tr>
+      <tr><td><b>Machine learning: unsupervised</b></td><td>An Isolation Forest learns what a normal works contract looks like across 10 features. Its top 10% overlaps the rule-based top 10% by 32% (3× chance; ρ = 0.31), and it surfaces 298 further anomalies, driven mainly by supplier dominance and long-standing supplier–entity ties.</td><td><code>ml_models.py</code></td><td><span class="st ok">● Built</span></td></tr>
+      <tr><td><b>Natural language processing</b></td><td>(1) A title classifier identifies construction works, since the data has no category field. (2) TF-IDF text similarity finds near-identical contracts split across awards. Next: extracting audit findings from Auditor General reports.</td><td><code>classify.py</code><br><code>ml_models.py</code></td><td><span class="st ok">● Built</span> / <span class="st plan">◐ next</span></td></tr>
+      <tr><td><b>Machine learning: supervised</b></td><td>A model estimating the probability that a contract or supplier is fraudulent. It needs labelled cases (Auditor General and Inspectorate of Government findings). The 43 PPDA suspensions are too few, and mostly document forgery.</td><td>—</td><td><span class="st plan">◐ Planned</span></td></tr>
+      <tr><td><b>Probability &amp; measure theory</b></td><td>Risk scores and the audit model treat risk as a probability proxy; bootstrap resampling gives the sampling distribution of the bunching estimate. A calibrated probability needs the supervised model.</td><td><code>analysis.py</code></td><td><span class="st plan">◐ Partly</span></td></tr>
+      <tr><td><b>Number theory &amp; finite fields</b></td><td>Blind bid evaluation: bidders get anonymous codes via modular exponentiation in a 2048-bit prime field. A private conflict-of-interest check lets two offices find overlapping firms without revealing their lists (commutative encryption). <a href="#blind">Try it below.</a></td><td><code>blind_eval.py</code></td><td><span class="st ok">● Built</span> (prototype)</td></tr>
+      <tr><td><b>Combinatorics</b></td><td>Enumerating bidder-pair combinations to build the network and identify identical bidder sets.</td><td><code>network.py</code><br><code>red_flags.py</code></td><td><span class="st ok">● Built</span></td></tr>
+    </table></div>
+  </div>
+</section>
+
+<section id="blind">
+  <div class="wrap">
+    <h2>Try it: blind bid evaluation (number theory in action)</h2>
+    <p>Bid evaluation should judge bids, not bidders. Enter some bidder names and a tender ID. Your browser hashes each name into the group of quadratic residues modulo a 2048-bit safe prime <i>p</i> (RFC 3526), raises it to a secret key <i>k</i> (<i>y</i> = <i>h</i>(name)<sup><i>k</i></sup> mod <i>p</i>), and turns the result into a code name. The evaluation committee would see only the code names. The same firm gets a different code on every tender, so it can't be tracked across tenders, and without <i>k</i> the code reveals nothing about the name.</p>
+    <div class="demo">
+      <div>
+        <label for="bidders" style="font-size:14px;color:var(--muted)">Bidders (one per line)</label>
+        <textarea id="bidders" rows="4">Firm Alpha Ltd
+Firm Beta Ltd
+Firm Gamma Ltd</textarea>
+        <label for="tender" style="font-size:14px;color:var(--muted)">Tender ID</label>
+        <input type="text" id="tender" value="WORKS-2026-001">
+        <button class="btn" id="go">Generate blind codes</button>
+        <p style="font-size:13px;color:var(--muted)">Runs entirely in your browser; nothing is sent anywhere. A fresh secret key is drawn each time you load the page.</p>
+      </div>
+      <div><div class="out" id="codes">Codes will appear here.</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="time">
+  <div class="wrap">
+    <h2>Could this shorten procurement in Uganda?</h2>
     <div class="finding">
       <div>
         <div class="num">73%</div>
         <h3>of procurement time comes after bids close</h3>
-        <p>The median works procurement takes 206 days. Only 43 are the bidding window; 138 come between bid closing and award. Procurements with no red flags wait as long as risky ones.</p>
+        <p>The median works procurement takes 206 days from advert to award. Only 43 of those are the bidding window; 138 come between bid closing and award. Procurements with no red flags (54% of records) wait as long as risky ones.</p>
       </div>
       <img src="img/fig2_postclose_by_tier.png" alt="Distributions of days from bid closing to award by risk tier, largely overlapping">
     </div>
+    <p>A three-lane model would give low-risk procurements a <strong>fast lane</strong> (automated document checks, fixed approval times) and concentrate scrutiny on the 7% that are high-risk. If low-risk procurements finished post-closing steps at the pace their fastest quarter already achieves, the median cycle would fall from <strong>206 to about 144 days</strong>. This is an illustrative scenario, not a causal estimate.</p>
   </div>
 </section>
 
-<section>
-  <div class="wrap">
-    <h2>Could this shorten procurement in Uganda?</h2>
-    <p>Possibly, if it is used to <em>target</em> oversight rather than add to it. About 54% of works procurements carry no meaningful red flags. A three-lane model would give them a fast lane, with automated document checks and fixed approval times, and concentrate scrutiny on the 7% that are high-risk.</p>
-    <div class="tw"><table>
-      <tr><th>Scenario</th><th>Median cycle</th></tr>
-      <tr><td>Today (all procurements processed the same way)</td><td>206 days</td></tr>
-      <tr><td>Low-risk procurements finish post-closing steps at the pace their fastest quarter already achieves</td><td>≈ 144 days</td></tr>
-    </table></div>
-    <p style="color:var(--muted);font-size:14px">This is an illustrative scenario, not a causal estimate. The real savings depend on which steps cause the delays.</p>
-  </div>
-</section>
-
-<section>
+<section id="product">
   <div class="wrap">
     <h2>The product</h2>
     <div class="cards">
@@ -121,49 +203,103 @@ th{color:var(--muted);font-weight:600}
       <div class="card"><h3>Collusion signals</h3><p>Repeated bidder groups, rotating winners, co-bidding networks and name-variant bidders.</p></div>
       <div class="card"><h3>Entity &amp; supplier profiles</h3><p>Concentration, method use, single-bid rates and Benford's Law checks.</p></div>
     </div>
-    <p style="margin-top:18px">
-      <span class="chip">Statistics &amp; inference</span><span class="chip">Bunching estimation</span><span class="chip">Benford's Law</span>
-      <span class="chip">Graph theory</span><span class="chip">Eigenvector centrality</span><span class="chip">Optimisation (knapsack)</span><span class="chip">Machine learning (next)</span>
-    </p>
+    <h3 style="margin-top:28px">An honest limitation</h3>
+    <p>We tested the flags against providers that PPDA has suspended, and they did <strong>not</strong> score higher. Most of those suspensions (36 of 43) were for forged documents, which price and competition screens can't see. A complete system needs automated document verification alongside statistical screens.</p>
+    <h3 style="margin-top:22px">Research outputs (in preparation)</h3>
+    <p><em>Bunching at the Estimate: Red-Flag Evidence of Integrity Risk in Uganda's Public Works Procurement</em><br>
+       <em>Faster and Cleaner? Risk-Based Oversight and Procurement Cycle Times in Uganda's Public Works</em></p>
   </div>
 </section>
 
-<section>
+<section id="about">
   <div class="wrap">
-    <h2>An honest limitation</h2>
-    <p>We tested the flags against providers that PPDA has suspended, and they did <strong>not</strong> score higher. Most of those suspensions (36 of 43) were for forged documents, which price and competition screens can't see. A complete system needs automated document verification (bid securities, registration certificates) alongside statistical screens.</p>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <h2>Research outputs (in preparation)</h2>
-    <div class="cards">
-      <div class="card"><h3>Paper 1</h3><p><em>Bunching at the Estimate: Red-Flag Evidence of Integrity Risk in Uganda's Public Works Procurement.</em></p></div>
-      <div class="card"><h3>Paper 2</h3><p><em>Faster and Cleaner? Risk-Based Oversight and Procurement Cycle Times in Uganda's Public Works.</em></p></div>
+    <h2>About</h2>
+    <div class="credit">
+      <p style="margin:0 0 8px"><b>Charles Gava</b>: project concept, research design and direction. The project grew out of his concept note proposing a mathematical and machine-learning toolkit (number theory, linear algebra, graph theory, optimisation, statistics and ML) to help oversight institutions minimise losses from procurement fraud. It starts with Uganda's construction sector as the case study.</p>
+      <p style="margin:0;font-size:14px;color:var(--muted)">To cite: Gava, C. (2026). <i>Procurement Risk Monitor: Uganda public works case study</i> [software and data analysis]. https://github.com/gavacharles/procurement-risk-uganda</p>
     </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <h2>Roadmap</h2>
-    <ol class="road">
-      <li><strong>Done:</strong> data pipeline, works classifier, 18 red flags, collusion detection, MVP dashboard, first findings.</li>
-      <li><strong>Next:</strong> validate thresholds against the PPDA Regulations; hand-label a sample to validate the works classifier; link tender and bid records.</li>
-      <li>Match suppliers to the URSB company registry (directors, addresses) for ownership networks.</li>
-      <li>Build a labelled dataset from audit findings to train supervised models.</li>
-      <li>Pilot with oversight institutions; add blind bid evaluation (anonymised bidder codes).</li>
-      <li>Extend to other sectors and other countries that publish OCDS.</li>
-    </ol>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    Data: PPDA Government Procurement Portal via the <a href="https://data.open-contracting.org/en/publication/130">Open Contracting Data Registry</a>. Firms are not named on this page.
-    Code: <a href="https://github.com/gavacharles/procurement-risk-uganda">github.com/gavacharles/procurement-risk-uganda</a>.
+    © 2026 Charles Gava. Data: PPDA Government Procurement Portal via the <a href="https://data.open-contracting.org/en/publication/130">Open Contracting Data Registry</a>; district boundaries: UBOS via geoBoundaries.
+    Code: <a href="https://github.com/gavacharles/procurement-risk-uganda">github.com/gavacharles/procurement-risk-uganda</a>. Analysis code developed with AI assistance (Claude).
   </div>
 </footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ---------------- map ----------------
+const fmt = {
+  mean_risk: v => v.toFixed(1),
+  restricted_or_direct_share: v => (100*v).toFixed(0)+'%',
+  just_below_estimate_share: v => (100*v).toFixed(0)+'%',
+  works_records: v => v.toLocaleString(),
+  works_value_ugx: v => v>=1e9 ? 'UGX '+(v/1e9).toFixed(1)+'bn' : 'UGX '+(v/1e6).toFixed(0)+'m'
+};
+const ramp = ['#fef0d9','#fdcc8a','#fc8d59','#e34a33','#b30000'];
+let metric = 'mean_risk', layer, data, breaks;
+const map = L.map('map', {scrollWheelZoom:false}).setView([1.37, 32.3], 6.4);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 10, attribution:'© OpenStreetMap contributors'}).addTo(map);
+function quantiles(vals){ vals = vals.slice().sort((a,b)=>a-b); return [0.2,0.4,0.6,0.8].map(q => vals[Math.floor(q*(vals.length-1))]); }
+function color(v){ if(v==null) return '#cfcfcf'; let i=0; while(i<breaks.length && v>breaks[i]) i++; return ramp[i]; }
+function style(f){ const v=f.properties[metric]; return {weight:0.6,color:'#666',fillOpacity: v==null?0.35:0.8,fillColor:color(v)}; }
+function show(p){
+  document.getElementById('pname').textContent = p.district;
+  const b = document.getElementById('pbody');
+  if(p.works_records==null){ b.innerHTML='No local-government works records in the data for this district.'; return; }
+  const rows = [['Works records',fmt.works_records(p.works_records)],['Works value',fmt.works_value_ugx(p.works_value_ugx)],
+    ['Procuring entities',p.entities],['Mean risk score',fmt.mean_risk(p.mean_risk)],['Records with 3+ flags',p.high_flag_records],
+    ['Restricted / direct share',p.restricted_or_direct_share==null?'n/a':fmt.restricted_or_direct_share(p.restricted_or_direct_share)],
+    ['Awards 99–100% of estimate',p.just_below_estimate_share==null?'n/a':fmt.just_below_estimate_share(p.just_below_estimate_share)]];
+  b.innerHTML = '<dl>'+rows.map(r=>`<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join('')+'</dl>'+(p.works_records<10?'<p style="font-size:13px;color:var(--accent)">Few records: interpret with care.</p>':'');
+}
+function render(){
+  const vals = data.features.map(f=>f.properties[metric]).filter(v=>v!=null);
+  breaks = quantiles(vals);
+  document.getElementById('lmin').textContent = fmt[metric](Math.min(...vals));
+  document.getElementById('lmax').textContent = fmt[metric](Math.max(...vals));
+  if(layer) map.removeLayer(layer);
+  layer = L.geoJSON(data,{style, onEachFeature:(f,l)=>{
+    const p=f.properties;
+    l.bindTooltip(`${p.district}: ${p[metric]==null?'no data':fmt[metric](p[metric])}`,{sticky:true});
+    l.on({click:()=>show(p), mouseover:()=>show(p)});
+  }}).addTo(map);
+}
+fetch('data/districts.geojson').then(r=>r.json()).then(g=>{ data=g; render(); map.fitBounds(L.geoJSON(g).getBounds()); });
+document.querySelectorAll('#metrics button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#metrics button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); metric=b.dataset.m; render();
+}));
+
+// ---------------- blind evaluation demo (BigInt modular arithmetic) ----------------
+const P = BigInt('0x'+
+ 'FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DD'+
+ 'EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED'+
+ 'EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F'+
+ '83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3B'+
+ 'E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA0510'+
+ '15728E5A8AACAA68FFFFFFFFFFFFFFFF');
+const Q = (P-1n)/2n;
+const ADJ=["Amber","Azure","Cedar","Coral","Ember","Ivory","Jade","Lunar","Maple","Ochre","Onyx","Pearl","Quartz","Sable","Slate","Teal","Umber","Violet","Willow","Zephyr"];
+const NOUN=["Acacia","Baobab","Crane","Delta","Egret","Falcon","Gazelle","Heron","Ibis","Kob","Lake","Mango","Nile","Okapi","Papyrus","Ridge","Savanna","Tilapia","Valley","Zebra"];
+function modpow(b,e,m){ let r=1n; b%=m; while(e>0n){ if(e&1n) r=r*b%m; b=b*b%m; e>>=1n; } return r; }
+async function sha(s){ const d=new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s))); return d; }
+const toBig = u => BigInt('0x'+[...u].map(x=>x.toString(16).padStart(2,'0')).join(''));
+const rnd = new Uint8Array(32); crypto.getRandomValues(rnd); const K = 2n + toBig(rnd) % (Q-3n);
+async function code(name, tender){
+  const hv = modpow(toBig(await sha(name+'|'+tender)) % P, 2n, P);   // hash into quadratic residues
+  const y = modpow(hv, K, P);                                         // blind with secret key
+  const d = await sha(y.toString(16));
+  return `${ADJ[d[0]%20]}-${NOUN[d[1]%20]}-${d[2].toString(16).padStart(2,'0').toUpperCase()}${d[3].toString(16).padStart(2,'0').toUpperCase()}`;
+}
+document.getElementById('go').addEventListener('click', async ()=>{
+  const names = document.getElementById('bidders').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const t = document.getElementById('tender').value.trim() || 'T';
+  const lines = [];
+  for(const n of names) lines.push(`${await code(n,t)}   ← seen by committee   (${n}: known only to PPDA)`);
+  document.getElementById('codes').textContent = `Tender ${t}\n\n` + lines.join('\n') + `\n\nChange the tender ID: every code changes.`;
+});
+</script>
 </body>
 </html>

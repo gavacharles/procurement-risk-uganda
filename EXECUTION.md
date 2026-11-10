@@ -199,6 +199,14 @@ The concept notes cover a wide range: blind bid review, network analysis, spectr
 - Some dates are implausible (1970).
 - Contract variations are not in the OCDS feed.
 
+### 2026-11-10 (later): ML, cryptography, map, credit
+- [x] Isolation Forest anomaly model (32% top-decile overlap with rules, 3× chance; 298 extra anomalies)
+- [x] NLP contract-splitting detector (21 possible splits across 13 entities)
+- [x] Blind bid evaluation and private conflict-of-interest check (modular exponentiation over a 2048-bit prime field), with tests
+- [x] Interactive district map on the public site (67 districts with data)
+- [x] Site section mapping each concept-note principle to code and status; author credit and CITATION.cff
+- [ ] Paper 1 test: plan/invitation-stage vs award-stage estimate, and estimates entered before vs after award (PPDA bid-invitations crawl in progress)
+
 ## 9. Immediate next steps
 1. Validate thresholds against the PPDA Regulations (bidding periods, method thresholds).
 2. Hand-label ~300 titles to measure classifier precision and recall.
