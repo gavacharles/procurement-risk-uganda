@@ -100,7 +100,7 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
 </head>
 <body>
 <nav><div class="wrap">
-  <a href="#findings">Findings</a><a href="#visuals">Visuals</a><a href="#map-section">Interactive map</a><a href="#maths">Maths &amp; ML</a>
+  <a href="#findings">Findings</a><a href="#visuals">Visuals</a><a href="#further">Going further</a><a href="#map-section">Interactive map</a><a href="#maths">Maths &amp; ML</a>
   <a href="#blind">Blind evaluation demo</a><a href="#time">Faster procurement</a><a href="#product">Product</a><a href="#about">About</a>
 </div></nav>
 
@@ -153,6 +153,26 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
       <figure><img src="media/chart_ml.png" alt="Bar chart of what makes contracts unusual according to the Isolation Forest">
         <figcaption><b>Machine learning.</b> What the Isolation Forest finds unusual: mainly suppliers that dominate an entity's works and long-standing supplier–entity ties.</figcaption></figure>
     </div>
+  </div>
+</section>
+
+<section id="further">
+  <div class="wrap">
+    <h2>Going further: five deeper questions</h2>
+    <p>Beyond the red flags, we asked what the patterns cost, why they arise, whether Uganda is unusual, and whether the works were actually built. All results are risk indicators that call for review, and no firm is named.</p>
+    <div class="vgrid">
+      <figure><img src="media/chart_unit_costs.png" alt="Scatter of unit costs per latrine stance and per classroom with outliers highlighted">
+        <figcaption><b>What should it cost? (NLP + statistics)</b> Quantities extracted from contract titles give benchmarks: a latrine costs about <b>UGX 5.2m per stance</b>, a classroom about <b>UGX 42m</b>. 47 contracts cost more than twice the benchmark. Bunched contracts are <i>not</i> more expensive per unit.</figcaption></figure>
+      <figure><img src="media/chart_cross_country.png" alt="Bar chart comparing the share of awards at 99–100% of the estimate across countries">
+        <figcaption><b>Is Uganda unusual? (cross-country)</b> The same screen on other countries' open data: Uganda's share of awards just below the estimate (23%) is about 3–4 times Rwanda's and Zambia's. Bunching is not universal.</figcaption></figure>
+      <figure><img src="media/chart_theory.png" alt="Simulated distributions of winning prices with a known versus a secret estimate">
+        <figcaption><b>Why does it happen? (game theory)</b> In a model of bidding where firms know the estimate, prices pile up just below it. Keeping estimates secret removes the spike and lowers prices 3–11%, but 18–43% of tenders would fail, so secrecy is a trade-off.</figcaption></figure>
+      <figure><img src="media/chart_election_event.png" alt="Monthly shares of direct procurement and bunched awards around elections">
+        <figcaption><b>Elections and the year-end rush (econometrics)</b> In the six months before elections, awards exactly equal to the estimate rise by about 2 points. In April–June, very short bidding windows rise by about 4 points. Effects are modest; the charts show raw shares, the regressions add fixed effects.</figcaption></figure>
+      <figure style="grid-column:1/-1"><img src="media/chart_satellite.png" alt="Small multiples of road redness over time from Sentinel-2 for several road contracts">
+        <figcaption><b>Was the road built? (satellite remote sensing)</b> Copernicus Sentinel-2 imagery shows red gravel turning into dark asphalt. Hoima–Wanseko and Bumbobi–Lwakhakha were paved by 2021. Koboko–Yumbe–Moyo and Namagumba–Budadiri still look like gravel or earthworks years after contract award and are flagged for a <b>field check</b>, not judged.</figcaption></figure>
+    </div>
+    <p class="note" style="margin-top:16px"><b>Two more findings.</b> If the bunching reflects prices anchored to the estimate, the excess cost is about <b>UGX 10bn</b> (95% CI 4.9–17.9bn) over 2015–2026. That's real money, but small next to total works spending; the bigger problem is information. And the Auditor General's engineering audits have mostly covered entities with <i>lower</i> risk scores than average. Audits follow donor programmes, not risk, which is exactly what risk-based selection would fix.</p>
   </div>
 </section>
 
@@ -222,6 +242,9 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
       <tr><td><b>Machine learning: supervised</b></td><td>A model estimating the probability that a contract or supplier is fraudulent. It needs labelled cases (Auditor General and Inspectorate of Government findings). The 43 PPDA suspensions are too few, and mostly document forgery.</td><td>—</td><td><span class="st plan">◐ Planned</span></td></tr>
       <tr><td><b>Probability &amp; measure theory</b></td><td>Risk scores and the audit model treat risk as a probability proxy; bootstrap resampling gives the sampling distribution of the bunching estimate. A calibrated probability needs the supervised model.</td><td><code>analysis.py</code></td><td><span class="st plan">◐ Partly</span></td></tr>
       <tr><td><b>Number theory &amp; finite fields</b></td><td>Blind bid evaluation: bidders get anonymous codes via modular exponentiation in a 2048-bit prime field. A private conflict-of-interest check lets two offices find overlapping firms without revealing their lists (commutative encryption). <a href="#blind">Try it below.</a></td><td><code>blind_eval.py</code></td><td><span class="st ok">● Built</span> (prototype)</td></tr>
+      <tr><td><b>Game theory (auction models)</b></td><td>A first-price procurement auction with the estimate as reserve price reproduces the bunching and simulates what secret estimates would save and cost.</td><td><code>theory_sim.py</code></td><td><span class="st ok">● Built</span></td></tr>
+      <tr><td><b>Remote sensing</b></td><td>Copernicus Sentinel-2 imagery along road routes tests whether contracted paving shows up (red gravel turning into dark asphalt).</td><td><code>satellite.py</code></td><td><span class="st ok">● Pilot</span></td></tr>
+      <tr><td><b>Econometrics (fixed effects)</b></td><td>Election, fiscal-year-end and COVID windows estimated with entity and year fixed effects and clustered errors.</td><td><code>natural_experiments.py</code></td><td><span class="st ok">● Built</span></td></tr>
       <tr><td><b>Combinatorics</b></td><td>Enumerating bidder-pair combinations to build the network and identify identical bidder sets.</td><td><code>network.py</code><br><code>red_flags.py</code></td><td><span class="st ok">● Built</span></td></tr>
     </table></div>
   </div>
