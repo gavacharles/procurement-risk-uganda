@@ -11,3 +11,9 @@ tabulate==0.10.0
 imageio-ffmpeg
 playwright
 pillow
+statsmodels
+pypdf
+pystac-client
+rasterio
+shapely
+pyproj

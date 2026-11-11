@@ -44,12 +44,12 @@ plt.rcParams.update({
 CREDIT = "Gava Charles · gavacharles.github.io/procurement-risk-uganda"
 
 
-def title(fig, t, sub=None):
+def title(fig, t, sub=None, source="Source: PPDA open contracting data"):
     fig.text(0.04, 0.95, t, fontsize=17, fontweight="bold", color=INK, va="top")
     if sub:
         fig.text(0.04, 0.885, sub, fontsize=11.5, color=INK2, va="top")
     fig.text(0.04, 0.025, CREDIT, fontsize=8.5, color=INK2)
-    fig.text(0.96, 0.025, "Source: PPDA open contracting data", fontsize=8.5, color=INK2, ha="right")
+    fig.text(0.96, 0.025, source, fontsize=8.5, color=INK2, ha="right")
 
 
 def save_writer(anim, name, fps):

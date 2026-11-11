@@ -211,6 +211,18 @@ The concept notes cover a wide range: blind bid review, network analysis, spectr
 - [x] Map rebuilt: 3 question tabs, year and sector filters, per-person value, central-government works located by title (119 districts, ~70% of value)
 - [ ] Full bid-invitations crawl (resumes after network drops) → re-run on full data; re-base works sample on official category
 
+### 2026-11-11: Ten extensions to make the research more novel
+- [x] (1) Money at stake: about UGX 10bn (CI 4.9–17.9bn) if bunching reflects price anchoring, so bunching is mainly an information problem (`src/money_at_stake.py`)
+- [x] (2) Unit-cost benchmarks from titles: latrine UGX 5.15m per stance, classroom UGX 42m; 47 outliers more than 2× (`src/unit_costs.py`)
+- [x] (3) Natural experiments: pre-election exact-estimate awards +2.2 pts; fiscal Q4 short windows +3.8 pts (`src/natural_experiments.py`)
+- [x] (4) Satellite pilot (Sentinel-2): 2 roads paved by 2021; 2 still gravel years after award (field check); 5 routes excluded for geocoding errors (`src/satellite.py`)
+- [ ] (5) e-GP difference-in-differences: code ready (`src/egp_did.py`); **needs the entity onboarding list from PPDA**
+- [x] (6) Cross-country: Uganda 23% vs Rwanda 7%, Zambia 6%; 3 feeds excluded as copy artefacts (`src/cross_country.py`)
+- [x] (7) OAG engineering audits: 68 reports read, UGX 9.6bn overpayments quantified; audited entities are *lower*-risk (selection follows programmes, not risk); too few labels to train a model (`src/oag_labels.py`)
+- [x] (8) Auction theory: a known estimate reproduces the spike; a secret estimate gives 3–11% lower prices but 18–43% failed tenders (`src/theory_sim.py`)
+- [ ] (9) Ownership networks: public provider register has all contact fields empty, so it **needs URSB or unredacted PPDA access** (`src/providers.py` ready, hashes on ingest)
+- [x] (10) Conflict-of-interest PSI pilot kit, tested end to end (`src/coi_pilot.py`); live pilot needs a partner
+
 ## 9. Immediate next steps
 1. Validate thresholds against the PPDA Regulations (bidding periods, method thresholds).
 2. Hand-label ~300 titles to measure classifier precision and recall.
