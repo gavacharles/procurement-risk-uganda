@@ -278,7 +278,10 @@ def chart(R):
                 v = g.loc[tag, f"share_{c}"]
                 ax.barh(y, v, left=left, color=col, height=0.8, edgecolor="#fcfcfb", linewidth=1)
                 left += v
-            ylabels.append(f"{road[:28]} · {int(g.loc[tag, 'season'])}")
+            if g.loc[tag, "n"] == 0:
+                ax.text(0.01, y, "no cloud-free image", va="center", fontsize=7.5, color=INK2, style="italic")
+            short = road.replace(" (rehab, already paved)", " (control)").replace(" (2025 tender)", "")
+            ylabels.append(f"{short[:30]} · {int(g.loc[tag, 'season'])}")
             y += 1
         y += 0.6
     ax.set_yticks([i for i in range(len(ylabels))] if False else [])
@@ -300,5 +303,7 @@ def chart(R):
     shutil.copy(out, ROOT / "docs" / "media" / out.name)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--chart" in sys.argv:
+    chart(pd.read_parquet(P / "semantic_change.parquet"))
+elif __name__ == "__main__":
     main()
