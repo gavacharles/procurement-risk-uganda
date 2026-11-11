@@ -17,3 +17,4 @@ pystac-client
 rasterio
 shapely
 pyproj
+pypandoc-binary
