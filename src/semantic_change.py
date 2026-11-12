@@ -121,6 +121,59 @@ def features_for(points: pd.DataFrame, season: int) -> pd.DataFrame:
                     scenes.append(sc)
         except Exception as e:
             print("  stac fail", cell, e, flush=True)
+    return features_from_scenes(points, scenes)
+
+
+BKEYS = ["bl", "gr", "rd", "ni", "s1", "s2"]
+
+
+def boa_offset(scene: dict) -> float:
+    """Reflectance offset to add after scaling by 1e-4: always 0 for Earth Search `sentinel-2-l2a`.
+    ESA processing baseline 04.00 (25 Jan 2022 on) stores L2A with +1000, but Earth Search has already
+    removed it from these COGs (`earthsearch:boa_offset_applied: True`); the leftover raster:bands
+    offset of -0.1 must NOT be applied again. Checked on open water in Lake Victoria (blue DN):
+    2019-01-05 -> 340-410, 2023-01-29 -> 440-500 (an unremoved offset would give ~1400)."""
+    return 0.0
+
+
+def indices(b: dict) -> dict:
+    bl, gr, rd, ni, s1 = b["bl"], b["gr"], b["rd"], b["ni"], b["s1"]
+    return dict(ndvi=(ni - rd) / (ni + rd + 1e-6), bsi=((s1 + rd) - (ni + bl)) / ((s1 + rd) + (ni + bl) + 1e-6),
+                red_ratio=rd / (bl + 1e-6), bright=(bl + gr + rd) / 3)
+
+
+def features_from_bands(road: dict, bg30: dict, bg60: dict) -> dict:
+    """Features v2: indices of the road pixel and of the mean of the side pixels (bands averaged first)."""
+    r, b3, b6 = ({**x, **indices(x)} for x in (road, bg30, bg60))
+    f = {}
+    for key in r:
+        f[f"road_{key}"] = r[key]
+        f[f"d30_{key}"] = r[key] - b3[key]
+        f[f"d60_{key}"] = r[key] - b6[key]
+    f["bg30_bsi"] = b3["bsi"]
+    f["fv"] = np.full(len(next(iter(road.values()))), 2.0)
+    return f
+
+
+def harmonise_cached(F: pd.DataFrame, offset: float) -> pd.DataFrame:
+    """Convert a v1 feature table (no BOA offset handling; side indices averaged after computing) to v2.
+    Raw bands of road and of the averaged side pixels are recovered exactly (road_x - d30_x)."""
+    if "fv" in F.columns or "road_bl" not in F.columns:
+        return F
+    road = {k: F[f"road_{k}"].to_numpy() + offset for k in BKEYS}
+    bg30 = {k: F[f"road_{k}"].to_numpy() - F[f"d30_{k}"].to_numpy() + offset for k in BKEYS}
+    bg60 = {k: F[f"road_{k}"].to_numpy() - F[f"d60_{k}"].to_numpy() + offset for k in BKEYS}
+    G = pd.DataFrame(features_from_bands(road, bg30, bg60), index=F.index)
+    G[F.road_bl.isna().to_numpy()] = np.nan
+    G["fv"] = 2.0
+    for c in F.columns:
+        if c not in G.columns:
+            G[c] = F[c]
+    return G
+
+
+def features_from_scenes(points: pd.DataFrame, scenes: list[dict]) -> pd.DataFrame:
+    """Per-point features from a list of scenes (least cloudy first fills each point; SCL-masked)."""
     feats = pd.DataFrame(index=points.index)
     for sc in sorted(scenes, key=lambda s: s["cloud"]):
         b = sc["bbox"]
@@ -141,22 +194,12 @@ def features_for(points: pd.DataFrame, season: int) -> pd.DataFrame:
         k = len(todo)
         arr = {bn: v[bn].reshape(k, 5) for bn in BANDS}
         ok = np.isin(arr["scl"][:, 0], [4, 5, 7]) & (arr["blue"][:, 0] > 0)
-
-        def idx(a, i):
-            bl, gr, rd, ni, s1, s2 = (arr[x][:, i] / 10000 for x in ["blue", "green", "red", "nir", "swir16", "swir22"])
-            ndvi = (ni - rd) / (ni + rd + 1e-6)
-            bsi = ((s1 + rd) - (ni + bl)) / ((s1 + rd) + (ni + bl) + 1e-6)
-            return dict(bl=bl, gr=gr, rd=rd, ni=ni, s1=s1, s2=s2, ndvi=ndvi, bsi=bsi,
-                        red_ratio=rd / (bl + 1e-6), bright=(bl + gr + rd) / 3)
-        road = idx(arr, 0)
-        bg30 = {key: (idx(arr, 1)[key] + idx(arr, 2)[key]) / 2 for key in road}
-        bg60 = {key: (idx(arr, 3)[key] + idx(arr, 4)[key]) / 2 for key in road}
-        f = {}
-        for key in road:
-            f[f"road_{key}"] = road[key]
-            f[f"d30_{key}"] = road[key] - bg30[key]
-            f[f"d60_{key}"] = road[key] - bg60[key]
-        f["bg30_bsi"] = bg30["bsi"]
+        off = boa_offset(sc)  # -0.1 for processing baseline >= 04.00 (Jan 2022 on), else 0
+        refl = {nm: arr[b] / 10000 + off for nm, b in zip(BKEYS, ["blue", "green", "red", "nir", "swir16", "swir22"])}
+        road = {nm: refl[nm][:, 0] for nm in BKEYS}
+        bg30 = {nm: (refl[nm][:, 1] + refl[nm][:, 2]) / 2 for nm in BKEYS}
+        bg60 = {nm: (refl[nm][:, 3] + refl[nm][:, 4]) / 2 for nm in BKEYS}
+        f = features_from_bands(road, bg30, bg60)
         F = pd.DataFrame(f, index=todo.index)
         F[~ok] = np.nan
         feats = F.combine_first(feats) if len(feats.columns) else F
@@ -178,7 +221,7 @@ def train(season=2026):
         X.to_parquet(fcache)
     d = pts.join(X).dropna(subset=["road_ndvi"])
     d = d[d.road_ndvi < 0.45]  # visible road only
-    cols = [c for c in X.columns if c != "bg30_bsi"]
+    cols = [c for c in X.columns if c not in ("bg30_bsi", "fv")]
     y = (d.cls == "asphalt").astype(int).to_numpy()
     preds = np.zeros(len(d))
     for tr, te in GroupKFold(n_splits=5).split(d, y, groups=d.way):

@@ -60,7 +60,36 @@ ROADS = [
 SEASONS = [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]  # season Y = Dec(Y-1)..Feb(Y)
 
 
+def _curl_json(url: str, data: bytes | None = None):
+    """Fallback for servers whose TLS the system Python (LibreSSL 2.8) cannot negotiate."""
+    import subprocess
+    cmd = ["curl", "-sS", "-m", "180", "-A", UA, url]
+    if data:
+        ctype = "application/json" if data[:1] in (b"{", b"[") else "application/x-www-form-urlencoded"
+        cmd += ["-H", f"Content-Type: {ctype}", "--data-binary", "@-"]
+    for i in range(4):
+        out = subprocess.run(cmd, input=data, capture_output=True).stdout
+        try:
+            return json.loads(out)
+        except ValueError:
+            if i == 3:
+                raise
+            time.sleep(10 * (i + 1))
+
+
 def http_json(url: str, data: bytes | None = None, tries=4):
+    for i in range(tries):
+        try:
+            return _http_json_once(url, data)
+        except Exception as e:
+            if "SSL" in str(e) or "handshake" in str(e).lower():
+                return _curl_json(url, data)
+            if i == tries - 1:
+                raise
+            time.sleep(5 * (i + 1))
+
+
+def _http_json_once(url: str, data: bytes | None = None, tries=1):
     for i in range(tries):
         try:
             req = urllib.request.Request(url, data=data, headers={"User-Agent": UA, "Content-Type": "application/json"} if data else {"User-Agent": UA})
@@ -240,30 +269,43 @@ def chart(S):
     import matplotlib.pyplot as plt
     sys.path.insert(0, str(ROOT / "src"))
     from visuals import BLUE, ORANGE, INK2, title
-    roads = [r for r in S.road.unique()]
-    n = len(roads)
-    cols = 4
+    roads = sorted(S.road.unique(), key=lambda r: (S[S.road == r].kind.iloc[0].startswith("control"), r))
+    n, cols = len(roads), 4
     rows_ = math.ceil(n / cols)
-    fig = plt.figure(figsize=(10, 2.3 * rows_ + 1.3))
+    fig = plt.figure(figsize=(10, 2.5 * rows_ + 1.5))
     title(fig, "Was the road paved? Sentinel-2 road redness over time",
-          "Red laterite gravel -> grey asphalt. Line = road redness minus surroundings; dashed = contract year",
-          source="Contracts: PPDA open contracting data")
+          "Road redness minus surroundings, dry season (Dec–Feb). Red laterite gravel reads high, grey asphalt near zero.\n"
+          "Shaded band = asphalt-like (< 0.15). Dashed line = contract year.",
+          source="Imagery: Copernicus Sentinel-2 (ESA) · routes: OSM/OSRM · contracts: PPDA")
+    ymin = min(-0.15, S.redness_contrast.min() - 0.03)
+    ymax = max(0.75, S.redness_contrast.max() + 0.05)
+    top, bottom = 0.78, 0.09
+    ph = (top - bottom) / rows_
     for i, r in enumerate(roads):
         s = S[S.road == r].sort_values("season")
-        ax = fig.add_axes([0.06 + (i % cols) * 0.235, 0.80 - (i // cols + 1) * (0.70 / rows_), 0.20, 0.70 / rows_ - 0.08])
+        ax = fig.add_axes([0.06 + (i % cols) * 0.235, top - (i // cols + 1) * ph + 0.06, 0.20, ph - 0.11])
         k = s.kind.iloc[0]
+        ax.axhspan(ymin, 0.15, color="#9aa0a6", alpha=0.15, lw=0)
         ax.plot(s.season, s.redness_contrast, color=ORANGE if k.startswith("control") else BLUE, lw=2, marker="o", ms=3)
-        ax.axvline(s.contract_year.iloc[0], color=INK2, lw=1, ls="--")
+        cy = int(s.contract_year.iloc[0])
+        if cy >= 2018:
+            ax.axvline(cy, color=INK2, lw=1, ls="--")
+        else:
+            ax.annotate(f"← contract {cy}", (2017.6, ymax * 0.93), fontsize=7, color=INK2)
         ax.axhline(0, color="#cfcfcf", lw=0.8)
-        ax.set_title(r[:34], fontsize=8.5, loc="left", color=INK2)
+        name = r.replace(" (rehab, already paved)", " (control)")
+        ax.set_title(name, fontsize=8.5, loc="left", color=INK2)
         ax.tick_params(labelsize=7)
         ax.set_xlim(2017.5, 2026.5)
+        ax.set_ylim(ymin, ymax)
+        ax.set_xticks([2018, 2020, 2022, 2024, 2026])
+        if i % cols:
+            ax.set_yticklabels([])
         ax.grid(axis="x", visible=False)
-    fig.text(0.5, 0.025, "Imagery: Copernicus Sentinel-2 (ESA) via Earth Search · routes: OpenStreetMap / OSRM",
-             fontsize=8.5, color=INK2, ha="center")
     out = ROOT / "posts" / "media" / "chart_satellite.png"
     fig.savefig(out, dpi=200)
     shutil.copy(out, ROOT / "docs" / "media" / out.name)
+    shutil.copy(out, ROOT / "paper" / "figures" / "p2_f5_satellite_redness.png")
 
 
 if __name__ == "__main__" and "--summarize" not in sys.argv:
