@@ -1,4 +1,4 @@
-"""Build shareable versions of both papers: Word (.docx) via pandoc and PDF via HTML (MathML) +
+"""Build shareable versions of each paper (published separately): Word (.docx) via pandoc and PDF via HTML (MathML) +
 headless Chrome. Output goes to paper/build/ (git-ignored with paper/).
 
 Usage: python src/build_papers.py
@@ -61,5 +61,6 @@ def build(md_name: str):
 
 
 if __name__ == "__main__":
-    for name in ["paper1_bunching.md", "paper2_risk_based_oversight.md"]:
+    for name in ["paper1_bunching.md", "paper2_risk_based_oversight.md",
+                 "paper3_tender_to_tarmac.md", "paper4_estimate_disclosure.md"]:
         build(name)
