@@ -470,8 +470,13 @@ def summarise(geo, valid, procs, meta, seal_share=None, done_th=0.8, bench_shift
     order = [p[0] for p in PERIODS]
     manual = ROOT / "data" / "manual" / "road_contract_dates.csv"
     mdates = pd.read_csv(manual).set_index("id") if manual.exists() else pd.DataFrame()
-    mf = ROOT / "data" / "manual" / "media_reports.csv"
-    media = pd.read_csv(mf) if mf.exists() else pd.DataFrame(columns=["id", "date", "type", "value"])
+    media = pd.DataFrame(columns=["id", "date", "type", "value"])
+    for mf in (ROOT / "data" / "manual" / "media_reports.csv", ROOT / "data" / "manual" / "media_reports_v2.csv"):
+        try:  # the first copy can be an unreadable cloud placeholder (OneDrive); the v2 copy is identical
+            media = pd.read_csv(mf)
+            break
+        except (OSError, TimeoutError):
+            continue
     _d = pd.to_datetime(media.date, errors="coerce")
     media["t"] = _d.dt.year + (_d.dt.dayofyear - 0.5) / 365.25
     seg_rows, ser_rows, road_rows = [], [], []
