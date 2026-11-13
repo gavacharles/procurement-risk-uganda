@@ -48,6 +48,8 @@ python3.12 -m venv ~/.venvs/procfraud          # keep the venv outside synced fo
 
 Input is the PPDA Government Procurement Portal in Open Contracting Data Standard (OCDS) format, mirrored monthly by the [OCP Data Registry, publication 130](https://data.open-contracting.org/en/publication/130). `run_pipeline.py --download` fetches it into `data/raw/`.
 
+A snapshot of every raw input used (November 2026) is attached to the release [data-2026-11-13](https://github.com/gavacharles/procurement-risk-uganda/releases/tag/data-2026-11-13); unzip it at the repository root to reproduce the analysis without downloading.
+
 ## What is not tracked
 
 `data/`, `reports/` and `paper/` are git-ignored: they hold the downloaded data, firm-level results and unpublished drafts. Only `docs/` (aggregate, no firm names) is published.
