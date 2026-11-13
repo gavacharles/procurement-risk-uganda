@@ -90,6 +90,135 @@ def load():
     return R, G, geo, routes
 
 
+def load_ext():
+    """Data for the extension beats: launch-to-works lags, launch ceremonies, national paving census."""
+    lt = json.loads((ROOT / "paper" / "launch_timing.json").read_text())
+    LA = pd.read_csv(ROOT / "data" / "manual" / "road_launches.csv")
+    LA["t"] = pd.to_datetime(LA.date).map(lambda x: x.year + (x.dayofyear - 0.5) / 365.25)
+    cen = json.loads((ROOT / "paper" / "paving_census.json").read_text())
+    st = pd.read_parquet(P / "paving_census_stretches.parquet")
+    new = pd.read_parquet(P / "paving_census_newly_paved.parquet")
+    new = new[new.stretch >= 0].copy()
+    new["traced"] = new.stretch.isin(set(st.index[st.matched_any]))
+    import paving_census as pc
+    keep = set(pd.read_parquet(P / "paving_census_points.parquet", columns=["way"]).way)
+    ways = [np.array(w["geom"]) for w in pc.osm_major() if w["id"] in keep and len(w["geom"]) > 1]
+    return dict(LW=lt["launch_to_works"], tests=lt["election_tests"], LA=LA, cen=cen, new=new, ways=ways)
+
+
+def g_launch(d, box, t, LW=None, **_):
+    """Launch ceremony (dot) to first works visible from space (diamond); arrow if none yet."""
+    rows = sorted(LW, key=lambda r: r["t_launch"])
+    x0, y0, x1, y1 = box
+    f = font(min(lf(box, 0.9).size, 24))
+    short = lambda s: s.split(" (")[0].split("–")[0] + "–" + s.split(" (")[0].split("–")[-1]
+    lab_w = max(d.textlength(short(r["road"]), font=f) for r in rows) + 14
+    lo, hi = 2018.5, 2027.0
+    ax0, ax1 = x0 + lab_w, x1 - d.textlength("> 2.2 y", font=f) - 12
+    X = lambda v: ax0 + (v - lo) / (hi - lo) * (ax1 - ax0)
+    ay1 = y1 - f.size - 18
+    step = (ay1 - y0) / len(rows)
+    for v in (2019, 2021, 2023, 2025):
+        d.text((X(v) - d.textlength(str(v), font=f) / 2, ay1 + 8), str(v), font=f, fill=MUT)
+    for e in (2021.04, 2026.04):
+        d.line([X(e), y0, X(e), ay1], fill=LGREY, width=2)
+    d.text((X(2021.04) + 6, y0 - f.size - 6), "election", font=f, fill=MUT)
+    d.text((X(2026.04) - d.textlength("election", font=f) - 6, y0 - f.size - 6), "election", font=f, fill=MUT)
+    tt = ease(t)
+    for k, r in enumerate(rows):
+        y = y0 + (k + 0.5) * step
+        d.text((x0, y - f.size / 2 - 2), short(r["road"]), font=f, fill=INK)
+        a = r["t_launch"]
+        end = r["t_visible_works"] if not r["censored"] else 2026.55
+        cur = a + (end - a) * tt
+        col = ORANGE if r["censored"] else BLUE
+        w = max(5, min(12, int(step * 0.18)))
+        d.line([X(a), y, X(cur), y], fill=col, width=w)
+        rr = w * 0.9
+        d.ellipse([X(a) - rr, y - rr, X(a) + rr, y + rr], fill=INK)
+        if t > 0.95:
+            if r["censored"]:
+                d.polygon([(X(end) + 14, y), (X(end), y - rr), (X(end), y + rr)], fill=ORANGE)
+                lab = f"> {2026.55 - a:.1f} y"
+            else:
+                d.polygon([(X(end), y - rr * 1.3), (X(end) + rr * 1.3, y), (X(end), y + rr * 1.3), (X(end) - rr * 1.3, y)], fill=BLUE)
+                lab = f"{r['lag_years']:.1f} y"
+            d.text((X(end) + 20, y - f.size / 2 - 2), lab, font=f, fill=INK2)
+
+
+def g_elections(d, box, t, LA=None, **_):
+    """Launch ceremonies drop onto a timeline; those in the 12 months before an election turn orange."""
+    x0, y0, x1, y1 = box
+    f = lf(box)
+    lo, hi = 2018.0, 2026.4
+    X = lambda v: x0 + (v - lo) / (hi - lo) * (x1 - x0)
+    base = y0 + (y1 - y0) * 0.72
+    elections = [2021.04, 2026.04]
+    for e in elections:
+        d.rectangle([X(e - 1), y0 + f.size + 12, X(e), base], fill=(250, 230, 220))
+        d.line([X(e), y0 + f.size + 12, X(e), base], fill=INK, width=3)
+        lab = "election " + ("Jan 2021" if e < 2022 else "Jan 2026")
+        d.text((X(e) - d.textlength(lab, font=f) - 8, y0), lab, font=f, fill=INK2)
+    d.line([x0, base, x1, base], fill=LGREY, width=2)
+    for v in range(2018, 2027, 2):
+        d.text((X(v) - d.textlength(str(v), font=f) / 2, base + 10), str(v), font=f, fill=MUT)
+    D = LA.sort_values("t").reset_index(drop=True)
+    shown = int(math.ceil(ease(t) * len(D)))
+    r = max(10, int((x1 - x0) / 75))
+    placed = []
+    for i, row in D.head(shown).iterrows():
+        cx = X(row.t)
+        level = sum(1 for px in placed if abs(px - cx) < 2 * r + 2)
+        placed.append(cx)
+        cy = base - r - 6 - level * (2 * r + 4)
+        pre = any(0 <= e - row.t <= 1.0 for e in elections)
+        d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=ORANGE if pre else BLUE, outline=BG, width=2)
+    fs = lf(box, 0.9)
+    yy = base + f.size + 30
+    d.ellipse([x0, yy + 4, x0 + 18, yy + 22], fill=ORANGE)
+    d.text((x0 + 26, yy), "launched in the 12 months before an election", font=fs, fill=INK2)
+    d.ellipse([x0, yy + fs.size + 16, x0 + 18, yy + fs.size + 34], fill=BLUE)
+    d.text((x0 + 26, yy + fs.size + 12), "other launches · each dot = one road launch ceremony", font=fs, fill=INK2)
+
+
+_CENSUS_BG = {}
+
+
+def g_census(d, box, t, geo=None, ways=None, new=None, **_):
+    """All major roads in grey; newly paved points appear, then split into traced (blue) and untraced (orange)."""
+    key = tuple(int(v) for v in box)
+    if key not in _CENSUS_BG:
+        im = Image.new("RGBA", (int(box[2] - box[0]), int(box[3] - box[1])), (0, 0, 0, 0))
+        dd = ImageDraw.Draw(im)
+        sub = (0, 0, box[2] - box[0], box[3] - box[1])
+        for ft in geo["features"]:
+            g = ft["geometry"]
+            for poly in ([g["coordinates"]] if g["type"] == "Polygon" else g["coordinates"]):
+                dd.polygon([tuple(p) for p in project(np.array(poly[0]), sub)], fill=(236, 235, 231, 255))
+        for xy in ways:
+            dd.line([tuple(p) for p in project(xy, sub)], fill=(196, 198, 202, 255), width=1)
+        _CENSUS_BG[key] = im
+    d._image.paste(_CENSUS_BG[key], (int(box[0]), int(box[1])), _CENSUS_BG[key])
+    pts = project(new[["lon", "lat"]].to_numpy(), box)
+    order = np.argsort(new.lat.to_numpy())[::-1]
+    shown = int(ease(min(1, t / 0.7)) * len(order))
+    split = t > 0.75
+    r = max(4, int((box[2] - box[0]) / 150))
+    tr = new.traced.to_numpy()
+    for i in order[:shown]:
+        c = (BLUE if tr[i] else ORANGE) if split else GREY
+        x, y = pts[i]
+        d.ellipse([x - r, y - r, x + r, y + r], fill=c)
+    if split:
+        f = lf(box, 0.9)
+        items = [(BLUE, "new tarmac with a published contract"), (ORANGE, "new tarmac with no contract in the open data")]
+        y = box[1]
+        for col, lab in items:
+            d.ellipse([box[0], y + 4, box[0] + 18, y + 22], fill=col)
+            d.text((box[0] + 26, y), lab, font=f, fill=INK2)
+            y += f.size + 10
+
+
 # ---------------------------------------------------------------- graphics (drawn into box = x0, y0, x1, y1; t in [0, 1])
 def g_dots(d, box, t, **_):
     """1,000 dots = 142,168 contracts; none has a start or end date."""
@@ -288,7 +417,7 @@ def g_media(d, box, t, R=None, **_):
 
 
 # ---------------------------------------------------------------- beats
-def beats(R, G, geo, routes):
+def beats(R, G, geo, routes, X=None):
     # summary numbers computed here, from the same rules as road_progress_charts.py
     D = R[~R.kind.str.startswith("control") & R.t_tender.notna() & ~R.status.str.startswith(("sealed", "insufficient", "excluded"))].copy()
     D["dur"] = np.where(D.t_complete.notna(), D.t_complete - D.t_tender, D.t_last - D.t_tender)
@@ -301,8 +430,23 @@ def beats(R, G, geo, routes):
     mv = dict(completion_lag_years_median=float((C.t_complete - C.t_media_done).median()))
     L = R[R.t_launch.notna() & ~R.kind.str.startswith("control")]
     pre = float((L.t_launch - L.t_tender).median())
+    X = X or load_ext()
+    rw = next(r for r in X["LW"] if r["id"] == "rwenkunye")
+    e0 = X["tests"][0]
+    wp = X["cen"]["with_places"]
+    ext_launch = dict(hook="A launch ceremony is not a start",
+                      stat=f"{rw['lag_years']:.1f} years", sub="from flag-off to the first works seen from space, Rwenkunye–Apac",
+                      draw=g_launch, kw=dict(LW=X["LW"]))
+    ext_elect = dict(hook="And launch ceremonies keep time with elections",
+                     stat=f"{e0['within_12m']} of {e0['n']}",
+                     sub=f"road launches fell in the year before an election; about {round(e0['expected_share'] * e0['n'])} expected",
+                     draw=g_elections, kw=dict(LA=X["LA"]))
+    ext_census = dict(hook="Then we checked every major road in Uganda",
+                      stat=f"{wp['unmatched_km']:,.0f} km",
+                      sub=f"of new tarmac since 2017 with no contract in the open data (of {X['cen']['stretch_km']:,.0f} km found)",
+                      draw=g_census, kw=dict(geo=geo, ways=X["ways"], new=X["new"]))
     return [
-        dict(hook="Uganda publishes every public contract. None says when the work starts or ends.",
+        dict(hook="Uganda publishes its public contracts. None says when the work starts or ends.",
              stat="0 of 142,168", sub="contracts in the open data carry a start or finish date", draw=g_dots, kw={}),
         dict(hook="So we watched 22 contracted roads from space",
              stat="2017 to 2026", sub="Sentinel-2 imagery, every kilometre, twice a year", draw=g_map, kw=dict(geo=geo, routes=routes)),
@@ -312,8 +456,11 @@ def beats(R, G, geo, routes):
              stat="0 of 103 km", sub="works began about three years after the tender; due July 2027", draw=g_strip, kw=dict(G=G, rid="koboko")),
         dict(hook="Most of the wait comes before the machines arrive",
              stat=f"{pre:.1f} years", sub="median from tender to works start, where a launch date is reported", draw=g_decomp, kw=dict(R=R)),
+        ext_launch,
+        ext_elect,
         dict(hook="From tender to tarmac",
              stat=f"{km['median_years']:.1f} years", sub=f"median time from tender to a finished road ({km['n']} roads)", draw=g_km, kw=dict(R=R)),
+        ext_census,
         dict(hook="Checked against the news before any claim",
              stat=f"{mv['completion_lag_years_median']:.1f} years", sub="typical gap between satellite and reported completion (39 reports, 17 roads)",
              draw=g_media, kw=dict(R=R)),
