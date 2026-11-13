@@ -381,8 +381,8 @@ def charts(x, r, res, Fd):
     H = 4.8
     fig = plt.figure(figsize=(9, H))
     title(fig, "More bidders, thinner margins",
-          "Median markup, (bid − cost) / bid, by number of bidders; costs recovered from the bids (Guerre, Perrigne &\n"
-          "Vuong 2000). Grey points: other samples and bandwidths. The level is uncertain; the fall with competition is not.",
+          "Median markup, (bid − cost) / bid, by number of bidders; costs recovered from the bids.\n"
+          "Grey points: other samples and bandwidths. The level is uncertain; the fall is not.",
           source="PPDA open contracting data (bids); author's estimates")
     frame(fig, H)
     ax = fig.add_axes([0.08, 0.85 / H, 0.88, 1 - 2.1 / H])
@@ -503,9 +503,9 @@ def chart_lowest(x):
     bl = res["bunching_lowest_vs_other_bids"]
     lowest = x.groupby("ocid").beta.min()
     other = x[~x.index.isin(x.groupby("ocid").beta.idxmin())].beta
-    H = 4.6
+    H = 5.0
     fig = plt.figure(figsize=(10, H))
-    title(fig, "Winning bids crowd just under the estimate; most losing bids sit above it",
+    title(fig, "Winning bids crowd under the estimate far more than losing bids",
           "Bids per 0.5% bin relative to the published estimate, lowest bid in each auction (left) vs all other bids (right).\n"
           "Excess mass in 0.97–1.00 against a smooth counterfactual, with 95% bootstrap intervals.",
           source="PPDA open contracting data (bids); author's estimates")
@@ -514,7 +514,7 @@ def chart_lowest(x):
         t.set_y(1 - (0.3 if yy > 0.9 else 0.68) / H) if yy > 0.5 else t.set_y(0.2 / H)
     edges = np.arange(0.80, 1.2001, 0.005)
     for j, (v, lab, key, col) in enumerate([(lowest, "Lowest bid", "lowest", ORANGE), (other, "Other bids", "other", BLUE)]):
-        ax = fig.add_axes([0.07 + j * 0.48, 0.65 / H, 0.42, 1 - 1.9 / H])
+        ax = fig.add_axes([0.07 + j * 0.48, 0.85 / H, 0.42, 1 - 2.25 / H])
         cnt, _ = np.histogram(v[(v >= 0.8) & (v < 1.2)], edges)
         mids = (edges[:-1] + edges[1:]) / 2
         ax.bar(mids, cnt, width=0.0045, color=[col if 0.97 <= m < 1.0 else "#b9bcc2" for m in mids])
