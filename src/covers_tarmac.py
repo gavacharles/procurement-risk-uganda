@@ -170,8 +170,8 @@ def cover(w, h, f, R, G, km_median, pre_median):
 
 
 TITLE3 = "Seven Years to Tarmac"
-TAG3 = ("Uganda publishes what it pays for, not what gets built. I watched its roads being paved from space, "
-        "kilometre by kilometre, and checked the satellite against the government's own reports")
+TAG3 = ("Uganda's road construction contracts are public. Their start dates, delays and disputes are not. "
+        "I tracked them from tender to tarmac by satellite, against the government's own reports and the courts")
 
 
 def wait_svg(width, height, f):
@@ -236,7 +236,7 @@ def cover3(w, h, f, km_median, pre_median, rho):
            + sw("#9aa1ab", "sealed") + sw("#ffffff", "finished", "tick") + '</div>')
     return f"""<!doctype html><html><head><meta charset="utf-8">{BASE_CSS}</head><body style="width:{w}px;height:{h}px">
 <div style="position:absolute;left:{56 * f}px;top:{50 * f}px;width:{w * 0.44}px">
-  <div class="kicker" style="font-size:{14 * f}px">Uganda · public roads · satellite audit</div>
+  <div class="kicker" style="font-size:{14 * f}px">Construction procurement · delays · disputes</div>
   <h1 style="font-size:{60 * f}px;margin-top:{14 * f}px">{TITLE3}</h1>
   <p class="muted" style="font-size:{18 * f}px;margin-top:{16 * f}px;line-height:1.42">{TAG3}</p>
 </div>
