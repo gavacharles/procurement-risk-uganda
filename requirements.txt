@@ -18,3 +18,8 @@ rasterio
 shapely
 pyproj
 pypandoc-binary
+ruptures
+lifelines
+xgboost
+shap
+PyMuPDF

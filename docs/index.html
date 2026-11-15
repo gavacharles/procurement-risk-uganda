@@ -100,7 +100,7 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
 </head>
 <body>
 <nav><div class="wrap">
-  <a href="#findings">Findings</a><a href="#visuals">Visuals</a><a href="#further">Going further</a><a href="#auctions">Auctions</a><a href="#map-section">Interactive map</a><a href="#maths">Maths &amp; ML</a>
+  <a href="#findings">Findings</a><a href="#visuals">Visuals</a><a href="#further">Going further</a><a href="#road-monitor">Road monitor</a><a href="#auctions">Auctions</a><a href="#map-section">Interactive map</a><a href="#maths">Maths &amp; ML</a>
   <a href="#blind">Blind evaluation demo</a><a href="#time">Faster procurement</a><a href="#product">Product</a><a href="#about">About</a>
 </div></nav>
 
@@ -187,6 +187,12 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
         <figcaption><b>Is the classifier right?</b> In a blind visual check of 160 random road crops it agreed 83% of the time where the image was clear, and it agreed with OpenStreetMap surface tags on 78% of 389 kilometres it never trained on. Many disagreements are recently paved roads that the map still tags as gravel.</figcaption></figure>
       <figure style="grid-column:1/-1"><img src="media/chart_road_progress_media.png" alt="Two scatter plots comparing media-reported progress and completion dates with satellite readings">
         <figcaption><b>Checked against the news.</b> 39 dated reports on 17 roads. Satellite completion dates fall a median 0.6 years after reported completion or commissioning, and the sealed share tracks reported progress once paving starts (earlier works such as earthworks count in reported progress but are not sealing). The check also caught and fixed four wrong verdicts: a mis-located town, two roads finished before the 2017 archive, and a narrow road hidden by vegetation.</figcaption></figure>
+      <figure style="grid-column:1/-1"><img src="media/chart_reported_vs_satellite.png" alt="Satellite share of kilometres newly sealed against physical progress reported in government monitoring reports, by contract, and both over time">
+        <figcaption><b>Checked against the government's own reports.</b> Ministry of Finance monitors and the roads authority report physical progress on each upgrading project. Across 44 readings on 12 contracts, the satellite tracks them closely (rank correlation 0.84). Reported progress runs a little ahead, as it should: it counts earthworks and drainage before any asphalt.</figcaption></figure>
+      <figure style="grid-column:1/-1"><img src="media/chart_road_indicators.png" alt="For nine roads, the year each kilometre was sealed along the road, and a scatter of sealing pace against the longest pause">
+        <figcaption><b>How roads get built, kilometre by kilometre.</b> Once sealing starts, a road takes a median of three years at about 13 km a year, usually on several fronts at once. The long "pauses" turned out mostly to be roads let as two contracts, or overlapping a neighbouring contract. Measuring real stalls needs contract lot boundaries, which the open data do not publish.</figcaption></figure>
+      <figure style="grid-column:1/-1"><img src="media/chart_delay_models.png" alt="Time to completion by dispute status; odds ratios of falling behind plan by the reasons monitors give; SHAP importance of a boosted model">
+        <figcaption><b>What goes with slow delivery? (survival analysis + machine learning, exploratory)</b> On 19 satellite-tracked roads, no procurement characteristic predicts completion time, but six completed roads is too few to tell. Across 249 monitoring visits to 167 projects, falling 10 points behind plan goes with design changes and contractor capacity problems. Land problems are cited everywhere, so they don't single out the worst projects. Monitors give reasons mainly when a project is behind, so these are associations, not causes.</figcaption></figure>
       <figure style="grid-column:1/-1"><img src="media/chart_launch_to_works.png" alt="For nine roads, a line from the launch ceremony to the first works visible in Sentinel-2, with arrows where none are visible yet">
         <figcaption><b>A ceremony is not a start.</b> After each reported launch ceremony, when does the road corridor first change from space? Within one to three months on Masaka–Bukakata and Muyembe–Nakapiripirit; 2.8 years on Rwenkunye–Apac–Lira–Puranga; not yet, as of July 2026, on three roads launched in 2024–25. Earthworks on an existing gravel road can be hard to see, so these are upper bounds on the wait for any works.</figcaption></figure>
       <figure style="grid-column:1/-1"><img src="media/chart_launch_elections.png" alt="Timeline of 23 road launch ceremonies with election dates, a histogram of months to the next election, and a placebo with shifted election dates">
@@ -195,6 +201,23 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
         <figcaption><b>Every major road in Uganda: paving the record does not show.</b> The same method run on all 15,573 km of trunk, primary and secondary roads finds 671 km of new paving between 2017 and 2026. Two-thirds traces to a contract in the open data; 230 km does not. Checked against the news, the longest untraced stretches are mostly real roads whose contracts are missing from the feed (the national roads authority appears as buyer in only 194 tenders in ten years), so the gap is in the record, not hidden roads. A noise check (apparent asphalt-to-gravel changes, which real roads almost never make) puts classifier noise at about a fifth of the signal.</figcaption></figure>
     </div>
     <p class="note" style="margin-top:16px"><b>Two more findings.</b> If the bunching reflects prices anchored to the estimate, the excess cost is about <b>UGX 10bn</b> (95% CI 4.9–17.9bn) over 2015–2026. That's real money, but small next to total works spending; the bigger problem is information. And the Auditor General's engineering audits have mostly covered entities with <i>lower</i> risk scores than average. Audits follow donor programmes, not risk, which is exactly what risk-based selection would fix.</p>
+  </div>
+</section>
+
+<section id="road-monitor">
+  <div class="wrap">
+    <h2>Road monitor: from tender to tarmac</h2>
+    <p>Pick a contracted road. The map colours each kilometre by the year Sentinel-2 first read it as sealed (grey: never). The chart compares what the satellite sees with the physical progress the government's own monitors report.</p>
+    <p class="note">A slow or paused road is a reason to ask for the work programme or visit the site, not a finding against anyone. The satellite sees sealing, not earthworks; reported progress includes earthworks, so it usually runs ahead. Disputes are listed by type from public court and tribunal records; no firm is named.</p>
+    <div class="ctrl2"><label>Road <select id="rm-road"></select></label></div>
+    <div class="mapgrid">
+      <div id="rm-map" style="height:420px;border-radius:10px;border:1px solid var(--line);background:var(--card)"></div>
+      <div id="rm-panel" style="background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;font-size:14.5px"></div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:16px">
+      <svg id="rm-chart" viewBox="0 0 760 240" style="width:100%;height:auto;display:block" role="img" aria-label="Road progress over time"></svg>
+      <div class="legend" id="rm-legend"></div>
+    </div>
   </div>
 </section>
 
@@ -514,6 +537,70 @@ document.getElementById('go').addEventListener('click', async ()=>{
   for(const n of names) lines.push(`${await code(n,t)}   ← seen by committee   (${n}: known only to PPDA)`);
   document.getElementById('codes').textContent = `Tender ${t}\n\n` + lines.join('\n') + `\n\nChange the tender ID: every code changes.`;
 });
+</script>
+<script>
+(function(){
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const sel = document.getElementById('rm-road'); if(!sel) return;
+  const rmap = L.map('rm-map', {scrollWheelZoom:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 14, attribution:'© OpenStreetMap contributors'}).addTo(rmap);
+  const layer = L.layerGroup().addTo(rmap);
+  const Y0 = 2016.5, Y1 = 2027;
+  const yrCol = t => { if(t==null) return '#bdbab3'; const f = Math.max(0, Math.min(1, (t-2017)/9.5));
+    const stops = [[68,1,84],[59,82,139],[33,145,140],[94,201,98],[253,231,37]];
+    const i = Math.min(3, Math.floor(f*4)), u = f*4 - i, a = stops[i], b = stops[i+1];
+    return `rgb(${a.map((v,k)=>Math.round(v+(b[k]-v)*u)).join(',')})`; };
+  const fy = t => t==null ? '—' : `${Math.floor(t)}${(t%1)>0.5?' (H2)':' (H1)'}`;
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  let D;
+  function draw(id){
+    const r = D.roads.find(x => x.id === id); layer.clearLayers();
+    L.polyline(r.route, {color: css('--muted') || '#888', weight: 2, opacity: .6}).addTo(layer);
+    r.segments.forEach(s => L.circleMarker([s.lat, s.lon], {radius: 5, weight: 1, color: '#333', fillColor: s.readable ? yrCol(s.sealed) : '#ffffff', fillOpacity: s.readable ? .95 : .3})
+      .bindTooltip(`km ${s.km}: ${s.readable ? (s.sealed ? 'sealed ' + fy(s.sealed) : 'not read as sealed') : 'not readable (cloud, trees or narrow)'}`).addTo(layer));
+    rmap.fitBounds(L.polyline(r.route).getBounds(), {padding: [20, 20]});
+    const ind = r.indicators, rad = r.radar;
+    const rows = [['Tender invitation', fy(r.tender)], ['Launch ceremony (news)', fy(r.launch)], ['First works seen from space', fy(r.first_works)],
+      ['Completed (≥80% sealed)', fy(r.completed)], ['Expected completion (benchmark)', fy(r.expected)]];
+    if(ind){ rows.push(['Tender → first km sealed', ind.lag_tender_to_seal + ' years'], ['Sealing pace', ind.velocity_kmy + ' km / year'],
+      ['Longest pause in sealing', ind.longest_pause_y + ' years'], ['Kilometres never read as sealed', Math.round(100*ind.share_never_sealed) + '%']); }
+    if(rad && rad.longest_pause_months) rows.push(['Longest radar-quiet spell', rad.longest_pause_months + ' months']);
+    document.getElementById('rm-panel').innerHTML = `<h3 style="margin-bottom:4px">${esc(r.name)}</h3><div class="pmeta">${r.km} km contracted · ${esc(r.status)}</div>
+      <dl style="display:grid;grid-template-columns:1fr auto;gap:5px 12px;margin:0">${rows.map(([a,b]) => `<dt style="color:var(--muted)">${a}</dt><dd style="margin:0;font-weight:600;text-align:right">${b}</dd>`).join('')}</dl>
+      ${r.note ? `<p class="small muted" style="margin:10px 0 0">${esc(r.note)}</p>` : ''}
+      ${r.disputes.length ? `<div style="margin-top:12px"><b>Formal disputes and reviews</b><ul class="bodies">${r.disputes.map(d => `<li>${d.year}: ${esc(d.what)} <span class="muted">(${d.stage})</span></li>`).join('')}</ul></div>` : ''}`;
+    chart(r);
+  }
+  function chart(r){
+    const W = 760, H = 240, L0 = 40, R0 = 16, T0 = 12, B0 = 28, x = t => L0 + (t - Y0) / (Y1 - Y0) * (W - L0 - R0), y = v => T0 + (1 - v) * (H - T0 - B0);
+    const fg = css('--fg'), mu = css('--muted'), ln = css('--line'), a2 = css('--accent2'), ok = css('--ok'), ac = css('--accent');
+    let s = '';
+    for(let t = 2017; t <= 2026; t++) s += `<line x1="${x(t)}" x2="${x(t)}" y1="${T0}" y2="${H-B0}" stroke="${ln}"/><text x="${x(t)}" y="${H-10}" font-size="11" text-anchor="middle" fill="${mu}">${t}</text>`;
+    [0, .5, 1].forEach(v => s += `<line x1="${L0}" x2="${W-R0}" y1="${y(v)}" y2="${y(v)}" stroke="${ln}"/><text x="${L0-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="${mu}">${v*100}%</text>`);
+    if(r.activity && r.activity.length){
+      const mx = Math.max(.3, ...r.activity.map(p => p[1] || 0));
+      const pts = r.activity.filter(p => p[1] != null).map(p => `${x(p[0])},${y(.35 * p[1] / mx)}`);
+      s += `<polyline points="${x(r.activity[0][0])},${y(0)} ${pts.join(' ')} ${x(r.activity[r.activity.length-1][0])},${y(0)}" fill="${mu}" fill-opacity=".22" stroke="none"/>`;
+      if(D.activity_threshold != null) s += `<line x1="${L0}" x2="${W-R0}" y1="${y(.35 * D.activity_threshold / mx)}" y2="${y(.35 * D.activity_threshold / mx)}" stroke="${mu}" stroke-dasharray="3 3"/>`;
+    }
+    [['tender', r.tender, mu], ['launch', r.launch, ac], ['expected', r.expected, mu]].forEach(([n, t, c]) => { if(t != null && t > Y0) s += `<line x1="${x(t)}" x2="${x(t)}" y1="${T0}" y2="${H-B0}" stroke="${c}" stroke-dasharray="${n==='expected'?'5 3':'2 2'}"/><text x="${x(t)+3}" y="${T0+10}" font-size="10.5" fill="${c}">${n}</text>`; });
+    const ss = r.sealed_series.filter(p => p[1] != null);
+    let d = ''; ss.forEach((p, i) => { d += (i ? `H${x(p[0])}V${y(p[1])}` : `M${x(p[0])},${y(p[1])}`); });
+    s += `<path d="${d}" fill="none" stroke="${a2}" stroke-width="2.2"/>`;
+    r.reported.forEach(p => s += `<circle cx="${x(p.t)}" cy="${y(p.pct/100)}" r="4" fill="${css('--card')}" stroke="${ok}" stroke-width="2"><title>${esc(p.lot)}: ${p.pct}% reported</title></circle>`);
+    document.getElementById('rm-chart').innerHTML = s;
+    document.getElementById('rm-legend').innerHTML = `<span class="lg"><i style="background:${a2}"></i>share of km sealed (Sentinel-2)</span>
+      <span class="lg"><i style="background:${ok}"></i>reported physical progress</span>
+      ${r.activity ? `<span class="lg"><i style="background:${mu};opacity:.4"></i>radar activity (Sentinel-1, relative; dashed: activity threshold)</span>` : ''}
+      <span class="lg"><i style="background:linear-gradient(90deg,${yrCol(2017)},${yrCol(2021.5)},${yrCol(2026.5)})"></i>map: year sealed 2017 → 2026</span>`;
+  }
+  fetch('data/roads.json').then(r => r.json()).then(j => {
+    D = j; D.roads.sort((a, b) => a.name.localeCompare(b.name));
+    sel.innerHTML = D.roads.map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('');
+    sel.value = D.roads.find(r => r.id === 'muyembe') ? 'muyembe' : D.roads[0].id;
+    sel.onchange = () => draw(sel.value); draw(sel.value);
+  });
+})();
 </script>
 </body>
 </html>

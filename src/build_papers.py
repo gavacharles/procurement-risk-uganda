@@ -62,5 +62,6 @@ def build(md_name: str):
 
 if __name__ == "__main__":
     for name in ["paper1_bunching.md", "paper2_risk_based_oversight.md",
-                 "paper3_tender_to_tarmac.md", "paper4_estimate_disclosure.md"]:
+                 "paper3_tender_to_tarmac.md", "paper4_estimate_disclosure.md",
+                 "paper5_beyond_completion_dates.md"]:
         build(name)
