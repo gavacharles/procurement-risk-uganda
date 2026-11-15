@@ -169,6 +169,91 @@ def cover(w, h, f, R, G, km_median, pre_median):
 </body></html>"""
 
 
+TITLE3 = "Seven Years to Tarmac"
+TAG3 = ("Uganda publishes what it pays for, not what gets built. I watched its roads being paved from space, "
+        "kilometre by kilometre, and checked the satellite against the government's own reports")
+
+
+def wait_svg(width, height, f):
+    """Each contracted road a bar from tender to the last image: orange while gravel, turning grey as the
+    satellite sees it sealed (new sealing since the first image); white tick at completion (>= 80% sealed)."""
+    R = pd.read_parquet(P / "road_progress_roads.parquet")
+    S = pd.read_parquet(P / "road_progress_series.parquet")
+    R = R[(R.kind == "upgrade") & R.t_tender.notna()
+          & ~R.status.str.startswith(("excluded", "insufficient", "sealed by the first"))].sort_values("t_tender")
+    x0, x1 = 2014.5, 2026.9
+    lab_w = 0.0
+    pad_l, pad_b = 6 * f, 26 * f
+    W, H = width - pad_l, height - pad_b
+    X = lambda t: pad_l + (t - x0) / (x1 - x0) * W  # noqa: E731
+    n = len(R)
+    rh = H / n
+    bh = rh * 0.62
+
+    def mix(u):
+        u = max(0.0, min(1.0, u))
+        a, b = (0xd9, 0x87, 0x3a), (0x9a, 0xa1, 0xab)
+        return "#%02x%02x%02x" % tuple(round(a[k] + (b[k] - a[k]) * u) for k in range(3))
+    out = []
+    for yr in range(2015, 2027):
+        out.append(f'<line x1="{X(yr):.1f}" x2="{X(yr):.1f}" y1="0" y2="{H:.1f}" stroke="#262b32" stroke-width="1"/>')
+        if yr % 2 == 1 or yr == 2026:
+            out.append(f'<text x="{X(yr):.1f}" y="{H + 18 * f:.1f}" fill="#8a9099" font-size="{11.5 * f:.1f}" '
+                       f'text-anchor="middle" font-family="Inter">{yr}</text>')
+    out.append(f'<line x1="{X(2017.0):.1f}" x2="{X(2017.0):.1f}" y1="0" y2="{H:.1f}" stroke="#4a515b" stroke-dasharray="3 3"/>')
+    for i, r in enumerate(R.itertuples()):
+        y = i * rh + (rh - bh) / 2
+        ser = S[S.id == r.id].sort_values("t")
+        s0 = float(ser.sealed_share.iloc[0]) if len(ser) else 0.0
+        t_start = r.t_tender
+        # before the archive: dashed thin bar (no images)
+        if t_start < 2017.0:
+            out.append(f'<rect x="{X(t_start):.1f}" y="{y + bh * 0.3:.1f}" width="{X(2017.0) - X(t_start):.1f}" '
+                       f'height="{bh * 0.4:.1f}" rx="{bh * 0.2:.1f}" fill="#d9873a" opacity="0.45"/>')
+        pts = list(zip(ser.t, ser.sealed_share))
+        for (ta, sa), (tb, _) in zip(pts, pts[1:] + [(2026.9, None)]):
+            a, b = max(ta - 0.25, t_start, 2017.0), min(tb - 0.25, 2026.9)
+            if b <= a:
+                continue
+            u = ((sa - s0) / (1 - s0) if s0 < 0.95 else 1) / 0.8  # 80% sealed = completion = full grey
+            out.append(f'<rect x="{X(a):.1f}" y="{y:.1f}" width="{X(b) - X(a) + 0.6:.1f}" height="{bh:.1f}" fill="{mix(u)}"/>')
+        out.append(f'<circle cx="{X(t_start):.1f}" cy="{y + bh / 2:.1f}" r="{bh * 0.38:.1f}" fill="#f0efec"/>')
+        if pd.notna(r.t_done):
+            out.append(f'<rect x="{X(r.t_done) - 1.5 * f:.1f}" y="{y - 2 * f:.1f}" width="{3 * f:.1f}" height="{bh + 4 * f:.1f}" fill="#ffffff"/>')
+    return f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}">{"".join(out)}</svg>'
+
+
+def cover3(w, h, f, km_median, pre_median, rho):
+    stat = lambda big, col, lines: (f'<div style="font-size:{13.5 * f}px;line-height:1.35"><b style="font-size:{32 * f}px;color:{col}">{big}</b>'  # noqa: E731
+                                    f'<br>{lines}</div>')
+    sw = lambda c, lab, shape="bar": (f'<span style="display:inline-flex;align-items:center;gap:{6 * f}px;margin-right:{14 * f}px">'  # noqa: E731
+                                      + (f'<i style="display:inline-block;width:{9 * f}px;height:{9 * f}px;border-radius:50%;background:{c}"></i>' if shape == "dot"
+                                         else f'<i style="display:inline-block;width:{3 * f}px;height:{12 * f}px;background:{c}"></i>' if shape == "tick"
+                                         else f'<i style="display:inline-block;width:{22 * f}px;height:{9 * f}px;border-radius:2px;background:{c}"></i>')
+                                      + f'{lab}</span>')
+    leg = (f'<div class="muted" style="font-size:{11.5 * f}px;margin-top:{8 * f}px;display:flex;flex-wrap:wrap">'
+           + sw("#f0efec", "tender", "dot") + sw("#d9873a", "still gravel") + sw("linear-gradient(90deg,#d9873a,#9aa1ab)", "being sealed")
+           + sw("#9aa1ab", "sealed") + sw("#ffffff", "finished", "tick") + '</div>')
+    return f"""<!doctype html><html><head><meta charset="utf-8">{BASE_CSS}</head><body style="width:{w}px;height:{h}px">
+<div style="position:absolute;left:{56 * f}px;top:{50 * f}px;width:{w * 0.44}px">
+  <div class="kicker" style="font-size:{14 * f}px">Uganda · public roads · satellite audit</div>
+  <h1 style="font-size:{60 * f}px;margin-top:{14 * f}px">{TITLE3}</h1>
+  <p class="muted" style="font-size:{18 * f}px;margin-top:{16 * f}px;line-height:1.42">{TAG3}</p>
+</div>
+<div style="position:absolute;left:{56 * f}px;bottom:{44 * f}px;display:flex;align-items:flex-end;gap:{30 * f}px">
+  {stat(f"{km_median:.1f} years", "#f08a5d", "median from tender<br>to a finished road")}
+  {stat(f"{pre_median:.1f} years", "#f08a5d", "before works<br>even start")}
+  {stat(f"{rho:.2f}", "#86b6ef", "correlation with the<br>government's progress reports")}
+</div>
+<div style="position:absolute;right:{44 * f}px;top:{46 * f}px">
+  <div class="muted" style="font-size:{12 * f}px;margin-bottom:{8 * f}px">19 contracted roads, tender → today, as seen by Sentinel-2</div>
+  {wait_svg(int(w * 0.44), int(h * 0.66), f)}{leg}
+</div>
+<div style="position:absolute;right:{44 * f}px;bottom:{30 * f}px;text-align:right;font-size:{14 * f}px">
+  <div class="by">By <b>Gava Charles</b></div><div class="url">gavacharles.github.io/procurement-risk-uganda</div></div>
+</body></html>"""
+
+
 def main():
     R = pd.read_parquet(P / "road_progress_roads.parquet")
     G = pd.read_parquet(P / "road_progress_segments.parquet")
@@ -181,10 +266,15 @@ def main():
         shoot(cover(1456, 816, 1.2, R, G, km_median, pre_median), "cover_substack_tarmac_v1.png", 1456, 816)
         shoot(cover(1200, 627, 1.0, R, G, km_median, pre_median), "cover_linkedin_tarmac_v1.png", 1200, 627)
         return
+    if "--v2" not in sys.argv:
+        rho = json.loads((ROOT / "paper" / "progress_validation.json").read_text())["spearman"]["rho"]
+        shoot(cover3(1456, 816, 1.2, km_median, pre_median, rho), "cover_substack_tarmac.png", 1456, 816)
+        shoot(cover3(1200, 627, 1.0, km_median, pre_median, rho), "cover_linkedin_tarmac.png", 1200, 627)
+        return
     e = json.loads((ROOT / "paper" / "launch_timing.json").read_text())["election_tests"][0]
     cen = json.loads((ROOT / "paper" / "paving_census.json").read_text())
-    shoot(cover2(1456, 816, 1.2, km_median, e, cen), "cover_substack_tarmac.png", 1456, 816)
-    shoot(cover2(1200, 627, 1.0, km_median, e, cen), "cover_linkedin_tarmac.png", 1200, 627)
+    shoot(cover2(1456, 816, 1.2, km_median, e, cen), "cover_substack_tarmac_v2.png", 1456, 816)
+    shoot(cover2(1200, 627, 1.0, km_median, e, cen), "cover_linkedin_tarmac_v2.png", 1200, 627)
 
 
 if __name__ == "__main__":
