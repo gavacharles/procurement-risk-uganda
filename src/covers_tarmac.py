@@ -282,7 +282,7 @@ def cover_roads():
              & ~R.status.str.startswith(("excluded", "insufficient", "sealed by the first"))].sort_values("t_tender")
 
 
-def wait_svg_light(width, height, f):
+def wait_svg_light(width, height, f, bar=0.6):
     R = cover_roads()
     S = pd.read_parquet(P / "road_progress_series.parquet")
     x0, x1 = 2014.5, 2026.75
@@ -290,7 +290,7 @@ def wait_svg_light(width, height, f):
     W, H = width - lab - 22 * f, height - 30 * f
     X = lambda t: lab + (t - x0) / (x1 - x0) * W  # noqa: E731
     rh = H / len(R)
-    bh = rh * 0.6
+    bh = rh * bar
     fs = min(11.5 * f, rh * 0.62)
 
     def mix(u):
@@ -327,6 +327,7 @@ def wait_svg_light(width, height, f):
 
 
 def cover4(w, h, f, km_median, pre_median):
+    tall = h / w > 0.6
     n = len(cover_roads())
     nd = int(cover_roads().id.isin(DISPUTED).sum())
     stat = lambda big, lines: (f'<div style="display:flex;align-items:center;gap:{12 * f}px;margin-top:{12 * f}px">'  # noqa: E731
@@ -342,9 +343,9 @@ def cover4(w, h, f, km_median, pre_median):
     return f"""<!doctype html><html><head><meta charset="utf-8">{LIGHT_CSS}</head><body style="width:{w}px;height:{h}px">
 <div style="position:absolute;left:{56 * f}px;top:{52 * f}px;width:{w * 0.36}px">
   <div class="kicker" style="font-size:{(13.5 if w > 1300 else 12) * f}px;white-space:nowrap">Construction procurement · delays · disputes</div>
-  <h1 style="font-size:{58 * f}px;margin-top:{16 * f}px">Seven Years to Tarmac</h1>
-  <p style="font-size:{18.5 * f}px;margin-top:{16 * f}px;line-height:1.4;color:#3a4049">Uganda's road contracts are public. When the roads get built, and why they don't, is not.</p>
-  <div style="margin-top:{26 * f}px;border-top:1px solid #ddd5c6;padding-top:{6 * f}px">
+  <h1 style="font-size:{(66 if tall else 58) * f}px;margin-top:{16 * f}px">Seven Years to Tarmac</h1>
+  <p style="font-size:{(20 if tall else 18.5) * f}px;margin-top:{16 * f}px;line-height:1.4;color:#3a4049">Uganda's road contracts are public. When the roads get built, and why they don't, is not.</p>
+  <div style="{f'position:fixed;left:{56 * f}px;bottom:{96 * f}px;width:{w * 0.36}px;' if tall else f'margin-top:{26 * f}px;'}border-top:1px solid #ddd5c6;padding-top:{6 * f}px">
     {stat(f"{km_median:.1f} yrs", "median from tender<br>to a finished road")}
     {stat(f"{pre_median:.0f} yrs", "before works even start:<br>land, money, approvals")}
     {stat(f"{nd} of {n}", "roads with a formal dispute in<br>court, tribunal or arbitration")}
@@ -352,7 +353,7 @@ def cover4(w, h, f, km_median, pre_median):
 </div>
 <div style="position:absolute;right:{40 * f}px;top:{50 * f}px">
   <div style="font-size:{13 * f}px;color:#3a4049;margin-bottom:{10 * f}px;padding-left:{150 * f}px"><b>{n} road contracts, tender to today</b> <span class="muted">· seen from space, Sentinel-2</span></div>
-  {wait_svg_light(int(w * 0.56), int(h * 0.70), f)}{legend}
+  {wait_svg_light(int(w * 0.56), int(h * 0.70), f, bar=0.48 if tall else 0.6)}{legend}
 </div>
 <div style="position:absolute;left:{56 * f}px;bottom:{34 * f}px;font-size:{13.5 * f}px">
   <span class="by">By <b>Gava Charles</b></span> <span class="muted">·</span> <span class="url">gavacharles.github.io/procurement-risk-uganda</span></div>
@@ -373,7 +374,10 @@ def main():
         return
     if "--v2" not in sys.argv:
         rho = json.loads((ROOT / "paper" / "progress_validation.json").read_text())["spearman"]["rho"]
-        shoot(cover4(1456, 816, 1.2, km_median, pre_median), "cover_substack_tarmac.png", 1456, 816)
+        # Substack header / social preview: 1200 x 630 (~1.91:1); a 14:10 version (1456 x 1048) as a fallback
+        shoot(cover4(1200, 630, 1.0, km_median, pre_median), "cover_substack_tarmac.png", 1200, 630)
+        shoot(cover4(1456, 1048, 1.2, km_median, pre_median), "cover_substack_tarmac_14x10.png", 1456, 1048)
+        shoot(cover4(1456, 816, 1.2, km_median, pre_median), "cover_substack_tarmac_16x9.png", 1456, 816)
         shoot(cover4(1200, 627, 1.0, km_median, pre_median), "cover_linkedin_tarmac.png", 1200, 627)
         shoot(cover3(1456, 816, 1.2, km_median, pre_median, rho), "cover_substack_tarmac_dark.png", 1456, 816)
         shoot(cover3(1200, 627, 1.0, km_median, pre_median, rho), "cover_linkedin_tarmac_dark.png", 1200, 627)
