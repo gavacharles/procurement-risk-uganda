@@ -254,6 +254,111 @@ def cover3(w, h, f, km_median, pre_median, rho):
 </body></html>"""
 
 
+LIGHT_CSS = """
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f6f2ea;color:#1b1f24;font-family:Inter,system-ui,sans-serif;overflow:hidden}
+.kicker{color:#b4442c;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+h1{font-family:"Source Serif 4",Georgia,serif;font-weight:700;line-height:1.04;letter-spacing:-.01em}
+.muted{color:#5b6570}
+.by{color:#3a4049;font-weight:600}.by b{color:#1b1f24}
+.url{color:#2c5f8a}
+</style>"""
+GRAVEL_L, TARMAC_L = (0xe0, 0x8a, 0x3c), (0x2b, 0x30, 0x37)
+DISPUTED = {"tirinyi", "kamonkoli", "muyembe", "bukakata", "kyenjojo"}  # data/manual/road_disputes_checked.csv (relevant, yes)
+SHORT = {"tirinyi": "Tirinyi–Pallisa–Kumi", "kamonkoli": "Pallisa–Kamonkoli", "bumbobi": "Bumbobi–Lwakhakha",
+         "muyembe": "Muyembe–Nakapiripirit", "kigumba": "Kigumba–Kabwoya", "rwenkunye": "Rwenkunye–Puranga",
+         "bukakata": "Masaka–Bukakata", "hoima": "Hoima–Wanseko", "kalule": "Kalule–Bamunanika", "koboko": "Koboko–Yumbe–Moyo",
+         "luwero": "Luwero–Butalangu", "namagumba": "Namagumba–Budadiri", "kyenjojo": "Kyenjojo–Bwizi",
+         "senge": "Kayunga–Senge", "namulanda": "Namulanda–Kajjansi", "kisozi": "Kisozi–Kitemu", "katooke": "Nansana–Katooke",
+         "bududa": "Bubulo–Bududa", "kalangala": "Kalangala–Mulabana"}
+
+
+def cover_roads():
+    """Upgrade roads with a verdict and >= 8 readable 1 km segments (shorter roads are too noisy to colour)."""
+    R = pd.read_parquet(P / "road_progress_roads.parquet")
+    return R[(R.kind == "upgrade") & R.t_tender.notna() & (R.n_segs >= 8)
+             & ~R.status.str.startswith(("excluded", "insufficient", "sealed by the first"))].sort_values("t_tender")
+
+
+def wait_svg_light(width, height, f):
+    R = cover_roads()
+    S = pd.read_parquet(P / "road_progress_series.parquet")
+    x0, x1 = 2014.5, 2026.75
+    lab = 150 * f
+    W, H = width - lab - 22 * f, height - 30 * f
+    X = lambda t: lab + (t - x0) / (x1 - x0) * W  # noqa: E731
+    rh = H / len(R)
+    bh = rh * 0.6
+    fs = min(11.5 * f, rh * 0.62)
+
+    def mix(u):
+        u = max(0.0, min(1.0, u))
+        return "#%02x%02x%02x" % tuple(round(GRAVEL_L[k] + (TARMAC_L[k] - GRAVEL_L[k]) * u) for k in range(3))
+    o = []
+    for yr in range(2015, 2027):
+        o.append(f'<line x1="{X(yr):.1f}" x2="{X(yr):.1f}" y1="0" y2="{H:.1f}" stroke="#e4ded2" stroke-width="1"/>')
+        if yr % 2 == 1:
+            o.append(f'<text x="{X(yr):.1f}" y="{H + 19 * f:.1f}" fill="#7a8089" font-size="{11.5 * f:.1f}" text-anchor="middle" font-family="Inter">{yr}</text>')
+    o.append(f'<text x="{X(2026.6):.1f}" y="{H + 19 * f:.1f}" fill="#b4442c" font-size="{11.5 * f:.1f}" font-weight="700" text-anchor="middle" font-family="Inter">today</text>')
+    o.append(f'<text x="{X(2015.75):.1f}" y="{H + 19 * f:.1f}" fill="#a3a8af" font-size="{10 * f:.1f}" text-anchor="middle" font-family="Inter">before images</text>' if False else "")
+    for i, r in enumerate(R.itertuples()):
+        y = i * rh + (rh - bh) / 2
+        cy = y + bh / 2
+        o.append(f'<text x="{lab - 10 * f:.1f}" y="{cy + fs * 0.36:.1f}" fill="#3a4049" font-size="{fs:.1f}" text-anchor="end" font-family="Inter">{SHORT.get(r.id, r.road)}</text>')
+        ser = S[S.id == r.id].sort_values("t")
+        s0 = float(ser.sealed_share.iloc[0]) if len(ser) else 0.0
+        t0 = r.t_tender
+        if t0 < 2017.0:
+            o.append(f'<line x1="{X(t0):.1f}" x2="{X(2017.0):.1f}" y1="{cy:.1f}" y2="{cy:.1f}" stroke="#e08a3c" stroke-width="{bh * 0.35:.1f}" stroke-dasharray="{3 * f:.0f} {3 * f:.0f}" opacity="0.7"/>')
+        pts = list(zip(ser.t, ser.sealed_share))
+        for (ta, sa), (tb, _) in zip(pts, pts[1:] + [(x1, None)]):
+            a, b = max(ta - 0.25, t0, 2017.0), min(tb - 0.25, x1)
+            if b > a:
+                u = ((sa - s0) / (1 - s0) if s0 < 0.95 else 1) / 0.8
+                o.append(f'<rect x="{X(a):.1f}" y="{y:.1f}" width="{X(b) - X(a) + 0.6:.1f}" height="{bh:.1f}" fill="{mix(u)}"/>')
+        o.append(f'<circle cx="{X(t0):.1f}" cy="{cy:.1f}" r="{bh * 0.42:.1f}" fill="#ffffff" stroke="#1b1f24" stroke-width="{1.6 * f:.1f}"/>')
+        if pd.notna(r.t_done):
+            o.append(f'<rect x="{X(r.t_done) - 1.6 * f:.1f}" y="{y - 2.5 * f:.1f}" width="{3.2 * f:.1f}" height="{bh + 5 * f:.1f}" fill="#f6f2ea"/>')
+        if r.id in DISPUTED:
+            o.append(f'<text x="{X(x1) + 6 * f:.1f}" y="{cy + fs * 0.55:.1f}" font-size="{fs * 1.55:.1f}" fill="#b4442c" font-weight="700">⚖</text>')
+    return f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}">{"".join(o)}</svg>'
+
+
+def cover4(w, h, f, km_median, pre_median):
+    n = len(cover_roads())
+    nd = int(cover_roads().id.isin(DISPUTED).sum())
+    stat = lambda big, lines: (f'<div style="display:flex;align-items:center;gap:{12 * f}px;margin-top:{12 * f}px">'  # noqa: E731
+                               f'<b style="font-size:{30 * f}px;color:#b4442c;min-width:{118 * f}px;font-weight:800">{big}</b>'
+                               f'<span style="font-size:{14 * f}px;line-height:1.3;color:#3a4049">{lines}</span></div>')
+    key = lambda sw, lab: f'<span style="display:inline-flex;align-items:center;gap:{6 * f}px;margin-right:{16 * f}px">{sw}{lab}</span>'  # noqa: E731
+    bar = lambda bg: f'<i style="display:inline-block;width:{22 * f}px;height:{9 * f}px;border-radius:2px;background:{bg}"></i>'  # noqa: E731
+    legend = ('<div class="muted" style="font-size:{fs}px;margin-top:{m}px;display:flex;flex-wrap:wrap;padding-left:{pl}px">'.format(
+        fs=11.5 * f, m=6 * f, pl=150 * f)
+        + key(f'<i style="display:inline-block;width:{9 * f}px;height:{9 * f}px;border-radius:50%;background:#fff;border:{1.6 * f}px solid #1b1f24"></i>', "tender")
+        + key(bar("#e08a3c"), "gravel") + key(bar("linear-gradient(90deg,#e08a3c,#2b3037)"), "being sealed")
+        + key(bar("#2b3037"), "tarmac") + key(f'<span style="color:#b4442c;font-size:{15 * f}px;font-weight:700">⚖</span>', "formal dispute on record") + "</div>")
+    return f"""<!doctype html><html><head><meta charset="utf-8">{LIGHT_CSS}</head><body style="width:{w}px;height:{h}px">
+<div style="position:absolute;left:{56 * f}px;top:{52 * f}px;width:{w * 0.36}px">
+  <div class="kicker" style="font-size:{(13.5 if w > 1300 else 12) * f}px;white-space:nowrap">Construction procurement · delays · disputes</div>
+  <h1 style="font-size:{58 * f}px;margin-top:{16 * f}px">Seven Years to Tarmac</h1>
+  <p style="font-size:{18.5 * f}px;margin-top:{16 * f}px;line-height:1.4;color:#3a4049">Uganda's road contracts are public. When the roads get built, and why they don't, is not.</p>
+  <div style="margin-top:{26 * f}px;border-top:1px solid #ddd5c6;padding-top:{6 * f}px">
+    {stat(f"{km_median:.1f} yrs", "median from tender<br>to a finished road")}
+    {stat(f"{pre_median:.0f} yrs", "before works even start:<br>land, money, approvals")}
+    {stat(f"{nd} of {n}", "roads with a formal dispute in<br>court, tribunal or arbitration")}
+  </div>
+</div>
+<div style="position:absolute;right:{40 * f}px;top:{50 * f}px">
+  <div style="font-size:{13 * f}px;color:#3a4049;margin-bottom:{10 * f}px;padding-left:{150 * f}px"><b>{n} road contracts, tender to today</b> <span class="muted">· seen from space, Sentinel-2</span></div>
+  {wait_svg_light(int(w * 0.56), int(h * 0.70), f)}{legend}
+</div>
+<div style="position:absolute;left:{56 * f}px;bottom:{34 * f}px;font-size:{13.5 * f}px">
+  <span class="by">By <b>Gava Charles</b></span> <span class="muted">·</span> <span class="url">gavacharles.github.io/procurement-risk-uganda</span></div>
+</body></html>"""
+
+
 def main():
     R = pd.read_parquet(P / "road_progress_roads.parquet")
     G = pd.read_parquet(P / "road_progress_segments.parquet")
@@ -268,8 +373,10 @@ def main():
         return
     if "--v2" not in sys.argv:
         rho = json.loads((ROOT / "paper" / "progress_validation.json").read_text())["spearman"]["rho"]
-        shoot(cover3(1456, 816, 1.2, km_median, pre_median, rho), "cover_substack_tarmac.png", 1456, 816)
-        shoot(cover3(1200, 627, 1.0, km_median, pre_median, rho), "cover_linkedin_tarmac.png", 1200, 627)
+        shoot(cover4(1456, 816, 1.2, km_median, pre_median), "cover_substack_tarmac.png", 1456, 816)
+        shoot(cover4(1200, 627, 1.0, km_median, pre_median), "cover_linkedin_tarmac.png", 1200, 627)
+        shoot(cover3(1456, 816, 1.2, km_median, pre_median, rho), "cover_substack_tarmac_dark.png", 1456, 816)
+        shoot(cover3(1200, 627, 1.0, km_median, pre_median, rho), "cover_linkedin_tarmac_dark.png", 1200, 627)
         return
     e = json.loads((ROOT / "paper" / "launch_timing.json").read_text())["election_tests"][0]
     cen = json.loads((ROOT / "paper" / "paving_census.json").read_text())
