@@ -1,0 +1,44 @@
+# Monthly Sentinel-2 readings at road segment points (Paper 3, src/road_dense.py).
+# Runs next to the open imagery on AWS; a local run would download several hundred GB.
+# Input: ci/road_segments.json (routes and sample points only). Output: per-road feature
+# parquet files as short-lived workflow artifacts (not committed).
+name: dense-s2
+
+on:
+  push:
+    branches: [rs-dense-s2]
+    paths: [".github/workflows/dense-s2.yml", "src/road_dense.py", "ci/road_segments.json"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        road: [bududa, bukakata, bumbobi, fortkamwenge, ftportal_hima, hoima, ishaka, kalangala, kalule,
+               kamonkoli, katooke, kigumba, kisozi, koboko, kyenjojo, luwero, matugga, mgahinga, mityana,
+               mutukula, muyembe, namagumba, namulanda, rwenkunye, seeta, senge, tirinyi]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install pandas pyarrow numpy rasterio pyproj scikit-learn scipy matplotlib
+      - name: Fetch (second pass retries failed months)
+        run: |
+          python -W ignore src/road_dense.py s2 --segments ci/road_segments.json --roads ${{ matrix.road }} --workers 16
+          python -W ignore src/road_dense.py s2 --segments ci/road_segments.json --roads ${{ matrix.road }} --workers 8
+          ls ~/.cache/procurement-risk/satellite/dense_s2 | wc -l
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dense-s2-${{ matrix.road }}
+          path: ~/.cache/procurement-risk/satellite/dense_s2/*.parquet
+          retention-days: 14
+          if-no-files-found: error
