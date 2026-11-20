@@ -7,3 +7,6 @@ __pycache__/
 .venv/
 .DS_Store
 /posts/
+
+# Paper drafts and write-ups are kept private (moved 2026-11-20)
+/EXECUTION.md
