@@ -15,7 +15,6 @@ Project site: https://gavacharles.github.io/procurement-risk-uganda/ · Citation
 | `src/` | Pipeline modules (see below) |
 | `tests/test_blind_eval.py` | Tests for the blind-evaluation prototype |
 | `docs/` | GitHub Pages site (aggregate figures and district map data only) |
-| `EXECUTION.md` | Working plan |
 | `CITATION.cff` | Citation metadata |
 | `requirements.txt` | Python dependencies |
 
